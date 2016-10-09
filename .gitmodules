@@ -1,0 +1,12 @@
+[submodule "externals/conwrap"]
+	path = externals/conwrap
+	url = https://github.com/gimesketvirtadieni/conwrap
+[submodule "externals/g3log"]
+	path = externals/g3log
+	url = https://github.com/gimesketvirtadieni/g3log
+[submodule "externals/asio"]
+	path = externals/asio
+	url = https://github.com/chriskohlhoff/asio
+[submodule "externals/googletest"]
+	path = externals/googletest
+	url = https://github.com/google/googletest
