@@ -1,7 +1,7 @@
 #ifndef SessionBase_INCLUDED
 #define SessionBase_INCLUDED
 
-#include <boost/asio.hpp>
+#include <asio.hpp>
 #include <cli/Command.h>
 #include <cli/Messages.h>
 #include <cli/Server.h>
@@ -37,7 +37,7 @@ class SessionBase {
 		}
 
 
-		inline void close(const boost::system::error_code error = boost::system::error_code()) {
+		inline void close(const std::error_code error = std::error_code()) {
 			getSocket()->close();
 		}
 
@@ -60,7 +60,7 @@ class SessionBase {
 		inline void open() {
 
 			// opening a socket; onOpen will be called once socket receives incomming connection
-			getSocket()->open([=](const boost::system::error_code code)
+			getSocket()->open([=](const std::error_code code)
 			{
 				serverPtr->getProcessor()->wrapHandler([=]
 				{
@@ -128,12 +128,12 @@ class SessionBase {
 		}
 
 
-		inline void setCloseCallback(std::function<void (SessionType*, const boost::system::error_code&)> closeCallback) {
+		inline void setCloseCallback(std::function<void (SessionType*, const std::error_code&)> closeCallback) {
 		    this->closeCallback = closeCallback;
 		}
 
 
-		inline void setDataCallback(std::function<void (SessionType*, const boost::system::error_code&, const std::size_t&)> dataCallback) {
+		inline void setDataCallback(std::function<void (SessionType*, const std::error_code&, const std::size_t&)> dataCallback) {
 		    this->dataCallback = dataCallback;
 		}
 
@@ -176,7 +176,7 @@ class SessionBase {
 		}
 
 
-		void onClose(const boost::system::error_code error) {
+		void onClose(const std::error_code error) {
 			LOG(DEBUG) << "CLI: Closing session (id=" << this << ", error='" << error.message() << "')...";
 
 			// canceling any actions run by this session
@@ -191,7 +191,7 @@ class SessionBase {
 		}
 
 
-		void onData(const boost::system::error_code error, const std::size_t receivedSize) {
+		void onData(const std::error_code error, const std::size_t receivedSize) {
 			std::unique_ptr<Command> commandPtr;
 			std::size_t              commandSize;
 			std::size_t              echoSize = receivedSize;
@@ -248,7 +248,7 @@ class SessionBase {
 						getSocket()->receive(
 							buffer + bufferUsed,
 							sizeof(buffer) - bufferUsed,
-							[=](const boost::system::error_code error, std::size_t bytes_transferred)
+							[=](const std::error_code error, std::size_t bytes_transferred)
 							{
 								serverPtr->getProcessor()->wrapHandler([=]
 								{
@@ -262,7 +262,7 @@ class SessionBase {
 		}
 
 
-		void onOpen(const boost::system::error_code error) {
+		void onOpen(const std::error_code error) {
 
 			// if error then closing this session
 			if (error) {
@@ -290,14 +290,14 @@ class SessionBase {
 
 
 	private:
-		conwrap::ProcessorQueue<SessionType>*                                                    processorPtr;
-		Server*                                                                                  serverPtr;
-		std::unique_ptr<SocketType>                                                              socketPtr;
-        std::function<void (SessionType*, const boost::system::error_code&)>                     closeCallback;
-        std::function<void (SessionType*, const boost::system::error_code&, const std::size_t&)> dataCallback;
-        std::function<void (SessionType*)>                                                       openCallback;
-		std::vector<std::unique_ptr<Command>>                                                    commands;
-    	bool                                                                                     promptWasSent;
+		conwrap::ProcessorQueue<SessionType>*                                          processorPtr;
+		Server*                                                                        serverPtr;
+		std::unique_ptr<SocketType>                                                    socketPtr;
+        std::function<void (SessionType*, const std::error_code&)>                     closeCallback;
+        std::function<void (SessionType*, const std::error_code&, const std::size_t&)> dataCallback;
+        std::function<void (SessionType*)>                                             openCallback;
+		std::vector<std::unique_ptr<Command>>                                          commands;
+    	bool                                                                           promptWasSent;
 
 		// TODO: ...
 		enum {

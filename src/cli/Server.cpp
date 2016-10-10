@@ -57,7 +57,7 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 
 	// setting onClose event handler
 	sessionProcessorPtr->getResource()->setCloseCallback(
-		[this](Session* sessionPtr, const boost::system::error_code& error) {
+		[this](Session* sessionPtr, const std::error_code& error) {
 			LOG(DEBUG) << "CLI: Close session callback started (id=" << sessionPtr << ", stopping=" << stopping << ", sessions=" << sessions.size() << ")";
 
 			// remove session routing is different while stopping the server
@@ -109,14 +109,9 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 }
 
 
-boost::asio::ip::tcp::acceptor* Server::getAcceptor() {
+asio::ip::tcp::acceptor* Server::getAcceptor() {
 	return acceptorPtr.get();
 }
-
-
-//Processor<boost::asio::ip::tcp::acceptor>* Server::getAcceptorFacade() {
-//	return nullptr;
-//}
 
 
 Actions* Server::getActions() const {
@@ -145,6 +140,12 @@ void Server::setProcessor(conwrap::ProcessorAsio<Server>* p)
 }
 
 
+// TODO: temp fix
+void Server::setProcessor(conwrap::ProcessorQueue<Server>*)
+{
+}
+
+
 void Server::start() {
 	LOG(INFO) << "CLI: Starting new server (id=" << this << ", port=" << port << ", max sessions=" << maxSessions << ")...";
 
@@ -165,10 +166,10 @@ void Server::startAcceptor() {
 	LOG(DEBUG) << "CLI: Starting acceptor...";
 
 	// creating an acceptor
-	acceptorPtr = std::make_unique<boost::asio::ip::tcp::acceptor>(
+	acceptorPtr = std::make_unique<asio::ip::tcp::acceptor>(
 		*processorPtr->getDispatcher(),
-		boost::asio::ip::tcp::endpoint(
-			boost::asio::ip::tcp::v4(),
+		asio::ip::tcp::endpoint(
+			asio::ip::tcp::v4(),
 			port
 		)
 	);

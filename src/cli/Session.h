@@ -1,7 +1,7 @@
 #ifndef Session_INCLUDED
 #define Session_INCLUDED
 
-#include <boost/asio.hpp>
+#include <asio.hpp>
 #include <cli/SessionBase.hpp>
 #include <conwrap/ProcessorQueue.hpp>
 #include <functional>

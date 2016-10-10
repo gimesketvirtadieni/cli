@@ -1,5 +1,3 @@
-#include <boost/exception/all.hpp>
-#include <boost/throw_exception.hpp>
 #include <cli/Server.h>
 #include <cli/Session.h>
 #include <cli/Socket.h>
@@ -8,17 +6,17 @@
 #include <iostream>
 
 
-Socket::Socket(Session* sessionPtr, boost::asio::io_service* dispatcherPtr) :
+Socket::Socket(Session* sessionPtr, asio::io_service* dispatcherPtr) :
 	sessionPtr(sessionPtr) {
 
 	// creating native socket
 	nativeSocketPtr.reset(
-		new boost::asio::ip::tcp::socket(
+		new asio::ip::tcp::socket(
 			*dispatcherPtr
 		),
 
 		// using empty deletor as socket object will be deleted explicitly by destructor
-		[](boost::asio::ip::tcp::socket*) {}
+		[](asio::ip::tcp::socket*) {}
 	);
 
 	LOG(DEBUG) << "CLI: Socket object was created (id=" << this << ")";
@@ -49,7 +47,7 @@ void Socket::cancel() {
 		socketPtr,
 
 		// using empty deletor as socket object will be deleted by destructor
-		[](boost::asio::ip::tcp::socket*) {}
+		[](asio::ip::tcp::socket*) {}
 	);
 
 	LOG(DEBUG) << "CLI: Current socket operations were canceled";
@@ -62,7 +60,7 @@ void Socket::close() {
 		LOG(DEBUG) << "CLI: Closing socket (id=" << this << ")...";
 
 		try {
-			nativeSocketPtr->shutdown(boost::asio::socket_base::shutdown_both);
+			nativeSocketPtr->shutdown(asio::socket_base::shutdown_both);
 		} catch (...) {}
 		try {
 			nativeSocketPtr->close();
@@ -78,7 +76,7 @@ Session* Socket::getSession() {
 }
 
 
-void Socket::open(std::function<void(const boost::system::error_code&)> callback) {
+void Socket::open(std::function<void(const std::error_code&)> callback) {
 	auto acceptorPtr  = sessionPtr->getServer()->getAcceptor();
 	if (acceptorPtr) {
 		LOG(DEBUG) << "CLI: Opening socket (id=" << this << ")...";
@@ -96,12 +94,12 @@ void Socket::open(std::function<void(const boost::system::error_code&)> callback
 }
 
 
-void Socket::receive(char* data, const std::size_t size, std::function<void(const boost::system::error_code& error, std::size_t bytes_transferred)> callback) {
+void Socket::receive(char* data, const std::size_t size, std::function<void(const std::error_code& error, std::size_t bytes_transferred)> callback) {
 
 	// reading from socket
 	if (nativeSocketPtr && nativeSocketPtr->is_open()) try {
 		nativeSocketPtr->async_read_some(
-			boost::asio::buffer(data, size),
+			asio::buffer(data, size),
 			callback
 		);
 	} catch (...) {
@@ -125,12 +123,12 @@ void Socket::send(std::shared_ptr<std::string> stringPtr) {
 }
 
 
-void Socket::send(std::weak_ptr<boost::asio::ip::tcp::socket> nativeSocketWeakPtr, const char* data, const std::size_t size) {
+void Socket::send(std::weak_ptr<asio::ip::tcp::socket> nativeSocketWeakPtr, const char* data, const std::size_t size) {
 
 	// writting to a socket
 	auto nativeSocketPtr = nativeSocketWeakPtr.lock();
 	if (nativeSocketPtr && nativeSocketPtr->is_open()) try {
-		nativeSocketPtr->send(boost::asio::buffer(data, size));
+		nativeSocketPtr->send(asio::buffer(data, size));
 	} catch (...) {
 		std::cout << "Socket::send Error: unexpected exception" << std::endl << std::flush;
 	}

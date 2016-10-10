@@ -1,7 +1,7 @@
 #ifndef Server_INCLUDED
 #define Server_INCLUDED
 
-#include <boost/asio.hpp>
+#include <asio.hpp>
 #include <conwrap/ProcessorQueue.hpp>
 #include <conwrap/ProcessorAsio.hpp>
 #include <functional>
@@ -20,13 +20,15 @@ class Server {
 	public:
 		                                Server(unsigned int, unsigned int, g3::LogWorker*, std::unique_ptr<Actions>);
 		                               ~Server();
-		boost::asio::ip::tcp::acceptor* getAcceptor();
+		asio::ip::tcp::acceptor*        getAcceptor();
 		//Processor<boost::asio::ip::tcp::acceptor>* getAcceptorFacade();
 		Actions*                        getActions() const;
 		g3::LogWorker*                  getLogger();
 	    std::shared_ptr<std::string>    getPromptMessage();
 	    conwrap::ProcessorAsio<Server>* getProcessor();
 	    void                            setProcessor(conwrap::ProcessorAsio<Server>*);
+	    // TODO: temp fix
+	    void                            setProcessor(conwrap::ProcessorQueue<Server>*);
 		void                            start();
 		void                            stop();
 
@@ -41,7 +43,7 @@ class Server {
 		unsigned int                                                   maxSessions;
 		g3::LogWorker*                                                 logWorkerPtr;
 		std::unique_ptr<Actions>                                       actionsPtr;
-		std::unique_ptr<boost::asio::ip::tcp::acceptor>                acceptorPtr;
+		std::unique_ptr<asio::ip::tcp::acceptor>                       acceptorPtr;
 		std::vector<std::unique_ptr<conwrap::ProcessorQueue<Session>>> sessions;
 		bool                                                           stopping;
 };
