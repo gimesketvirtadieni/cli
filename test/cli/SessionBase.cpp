@@ -23,7 +23,7 @@ struct SocketMock {
 
 	virtual ~SocketMock() {}
 
-	void open(std::function<void(const boost::system::error_code&)> openHandler) {
+	void open(std::function<void(const std::error_code&)> openHandler) {
 
 		processorServerPtr->process(
 			[this, openHandler] {
@@ -35,13 +35,13 @@ struct SocketMock {
 				// invoking an empty hook so it can be mocked
 				this->openHook();
 
-				openHandler(boost::system::error_code());
+				openHandler(std::error_code());
 			}
 		);
 	}
 	MOCK_METHOD0(openHook, void());
 
-	void receive(char*, const std::size_t, std::function<void(const boost::system::error_code&, std::size_t)>) {
+	void receive(char*, const std::size_t, std::function<void(const std::error_code&, std::size_t)>) {
 	}
 
 	void send(const char* str) {
@@ -84,7 +84,7 @@ struct SessionBaseMock : public SessionBase<SessionBaseMock, SocketMock> {
 	MOCK_METHOD0(runCloseCallbackHook, void());
 
 */
-	void dataCallback(SessionBaseMock*, const boost::system::error_code error, std::size_t receivedSize) {
+	void dataCallback(SessionBaseMock*, const std::error_code error, std::size_t receivedSize) {
 
 		// invoking an empty hook so it can be mocked
 		dataCallbackHook();
