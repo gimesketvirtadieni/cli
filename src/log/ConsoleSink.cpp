@@ -1,4 +1,7 @@
+#include <algorithm>
+#include <cctype>
 #include <iostream>
+#include <string>
 #include "ConsoleSink.h"
 
 
@@ -17,11 +20,21 @@ void ConsoleSink::print(g3::LogMessageMover logEntry) {
 	if (!filter(logMessage)) {
 
 		// TODO: SinkFormatter should be introduced
+		std::string s = logMessage.message();
 		std::cout << logMessage.timestamp("%Y/%m/%d %H:%M:%S.%f3") << " "
 				  << logMessage.level()
 				  << " [" << logMessage.threadID() << "]"
 				  << " (" << logMessage.file() << ":" << logMessage.line() << ") - "
-				  << logMessage.message()
+				  << rightTrim(logMessage.message())
 				  << std::endl << std::flush;
 	}
+}
+
+
+std::string ConsoleSink::rightTrim(const std::string &s) {
+	auto r = std::find_if_not(s.rbegin(), s.rend(), [](int c) {
+		return std::isspace(c);
+	}).base();
+
+	return std::string(s.begin(), r);
 }

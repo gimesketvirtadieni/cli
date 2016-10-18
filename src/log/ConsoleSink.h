@@ -13,6 +13,9 @@ class ConsoleSink : public SinkFilter {
 		             ConsoleSink& operator=(const ConsoleSink&) = delete;
 		virtual     ~ConsoleSink();
 		        void print(g3::LogMessageMover);
+
+	protected:
+		std::string rightTrim(const std::string&);
 };
 
 #endif // ConsoleSink_INCLUDED
