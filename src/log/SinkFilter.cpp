@@ -1,6 +1,15 @@
 #include "SinkFilter.h"
 
 
+std::string rightTrim(const std::string &s) {
+	auto r = std::find_if_not(s.rbegin(), s.rend(), [](int c) {
+		return std::isspace(c);
+	}).base();
+
+	return std::string(s.begin(), r);
+}
+
+
 SinkFilter::SinkFilter(std::function<bool(g3::LogMessage&)> filter) :
 	_filter(filter) {
 }

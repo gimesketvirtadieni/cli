@@ -29,7 +29,7 @@ void SocketSink::log(g3::LogMessageMover logEntry) {
 			logMessage.level() +
 			" [" + logMessage.threadID() + "]" +
 			" (" + logMessage.file() + ":" + logMessage.line() + ") - " +
-			logMessage.message() +
+			rightTrim(logMessage.message()) +
 			"\r\n"
 		);
 

@@ -29,12 +29,3 @@ void ConsoleSink::print(g3::LogMessageMover logEntry) {
 				  << std::endl << std::flush;
 	}
 }
-
-
-std::string ConsoleSink::rightTrim(const std::string &s) {
-	auto r = std::find_if_not(s.rbegin(), s.rend(), [](int c) {
-		return std::isspace(c);
-	}).base();
-
-	return std::string(s.begin(), r);
-}
