@@ -109,7 +109,7 @@ void Actions::addDefaultLogActions() {
 			auto filter = false;
 
 			// filtering one noicy line
-			if (logMessage._level == DEBUG && !logMessage._file.compare("alsaPlayer.cpp") && logMessage._line == 205) {
+			if (logMessage._level == DEBUG && !logMessage._file.compare("alsaPlayer.cpp") && logMessage._line == 243) {
 				filter = true;
 			}
 
