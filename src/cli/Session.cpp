@@ -6,7 +6,7 @@
 
 
 Session::Session(Server* serverPtr) :
-	SessionBase(serverPtr, std::move(std::make_unique<Socket>(this, serverPtr->getProcessor()->getDispatcher()))) {
+	SessionBase(serverPtr, std::move(std::make_unique<Socket>(this, serverPtr->getProcessorProxy()->getDispatcher()))) {
 	LOG(DEBUG) << "CLI: Session object was created (id=" << this << ")";
 }
 

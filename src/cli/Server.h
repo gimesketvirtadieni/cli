@@ -3,7 +3,7 @@
 
 #include <asio.hpp>
 #include <conwrap/ProcessorQueue.hpp>
-#include <conwrap/ProcessorAsio.hpp>
+#include <conwrap/ProcessorAsioProxy.hpp>
 #include <functional>
 #include <g3log/logworker.hpp>
 #include <memory>
@@ -21,14 +21,11 @@ class Server {
 		                                Server(unsigned int, unsigned int, g3::LogWorker*, std::unique_ptr<Actions>);
 		                               ~Server();
 		asio::ip::tcp::acceptor*        getAcceptor();
-		//Processor<boost::asio::ip::tcp::acceptor>* getAcceptorFacade();
 		Actions*                        getActions() const;
 		g3::LogWorker*                  getLogger();
 	    std::shared_ptr<std::string>    getPromptMessage();
-	    conwrap::ProcessorAsio<Server>* getProcessor();
-	    void                            setProcessor(conwrap::ProcessorAsio<Server>*);
-	    // TODO: temp fix
-	    void                            setProcessor(conwrap::ProcessorQueue<Server>*);
+	    conwrap::ProcessorAsioProxy<Server>* getProcessorProxy();
+	    void                            setProcessorProxy(conwrap::ProcessorAsioProxy<Server>*);
 		void                            start();
 		void                            stop();
 
@@ -38,7 +35,7 @@ class Server {
 		void                                              stopAcceptor();
 
 	private:
-		conwrap::ProcessorAsio<Server>*                                processorPtr;
+		conwrap::ProcessorAsioProxy<Server>*                           processorProxyPtr;
 		unsigned int                                                   port;
 		unsigned int                                                   maxSessions;
 		g3::LogWorker*                                                 logWorkerPtr;

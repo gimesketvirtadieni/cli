@@ -64,7 +64,7 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 			if (!stopping) {
 
 				// posponing removing session from the vector
-				processorPtr->process(
+				processorProxyPtr->process(
 					[this, sessionPtr] {
 
 						// by the time this handler is processed session might be deleted however sessionPtr is good enough for comparison
@@ -98,7 +98,7 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 	);
 
 	// start listening to the incoming requests
-	processorPtr->process(
+	processorProxyPtr->process(
 		[this, sessionPtr = sessionProcessorPtr->getResource()] {
 			sessionPtr->open();
 		}
@@ -124,8 +124,8 @@ g3::LogWorker* Server::getLogger() {
 }
 
 
-conwrap::ProcessorAsio<Server>* Server::getProcessor() {
-	return processorPtr;
+conwrap::ProcessorAsioProxy<Server>* Server::getProcessorProxy() {
+	return processorProxyPtr;
 }
 
 
@@ -134,15 +134,9 @@ std::shared_ptr<std::string> Server::getPromptMessage() {
 }
 
 
-void Server::setProcessor(conwrap::ProcessorAsio<Server>* p)
+void Server::setProcessorProxy(conwrap::ProcessorAsioProxy<Server>* p)
 {
-	processorPtr = p;
-}
-
-
-// TODO: temp fix
-void Server::setProcessor(conwrap::ProcessorQueue<Server>*)
-{
+	processorProxyPtr = p;
 }
 
 
@@ -167,7 +161,7 @@ void Server::startAcceptor() {
 
 	// creating an acceptor
 	acceptorPtr = std::make_unique<asio::ip::tcp::acceptor>(
-		*processorPtr->getDispatcher(),
+		*processorProxyPtr->getDispatcher(),
 		asio::ip::tcp::endpoint(
 			asio::ip::tcp::v4(),
 			port
