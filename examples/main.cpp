@@ -2,7 +2,7 @@
 #include <cli/Actions.h>
 #include <cli/Server.h>
 #include <conwrap/ProcessorAsio.hpp>
-#include <conwrap/HandlerContext.hpp>
+#include <conwrap/Context.hpp>
 #include <g3log/logworker.hpp>
 #include <functional>
 #include <iostream>

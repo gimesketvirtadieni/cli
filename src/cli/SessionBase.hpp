@@ -62,7 +62,7 @@ class SessionBase {
 			// opening a socket; onOpen will be called once socket receives incomming connection
 			getSocket()->open([=](const std::error_code code)
 			{
-				serverPtr->getProcessorProxy()->wrapHandler([=]
+				serverPtr->getProcessorProxy()->wrap([=]
 				{
 					onOpen(code);
 				})();
@@ -250,7 +250,7 @@ class SessionBase {
 							sizeof(buffer) - bufferUsed,
 							[=](const std::error_code error, std::size_t bytes_transferred)
 							{
-								serverPtr->getProcessorProxy()->wrapHandler([=]
+								serverPtr->getProcessorProxy()->wrap([=]
 								{
 									onData(error, bytes_transferred);
 								})();
