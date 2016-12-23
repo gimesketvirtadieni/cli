@@ -17,14 +17,11 @@
 template <typename SessionType, typename SocketType>
 class SessionBase {
 	public:
-		SessionBase(Server* serverPtr, std::unique_ptr<SocketType> socketPtr) :
+		explicit SessionBase(Server* serverPtr, std::unique_ptr<SocketType> socketPtr) :
 			serverPtr(serverPtr),
 			socketPtr(std::move(socketPtr)),
 			bufferUsed(0),
 			promptWasSent(false) {}
-
-
-		virtual ~SessionBase() {}
 
 
 		inline void cancel() {
@@ -37,7 +34,15 @@ class SessionBase {
 		}
 
 
-		inline void close(const std::error_code error = std::error_code()) {
+		inline void close(const std::error_code error = std::error_code())
+		{
+			// invoking onClose handler just before socket is closed
+			serverPtr->getProcessorProxy()->wrap([=]
+			{
+				onClose(error);
+			})();
+
+			// closing the socket
 			getSocket()->close();
 		}
 
@@ -57,8 +62,8 @@ class SessionBase {
 		}
 
 
-		inline void open() {
-
+		inline void open()
+		{
 			// opening a socket; onOpen will be called once socket receives incomming connection
 			getSocket()->open([=](const std::error_code code)
 			{

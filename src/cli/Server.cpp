@@ -10,11 +10,10 @@
 //#include <iostream>
 
 
-Server::Server(unsigned int port, unsigned int maxSessions, g3::LogWorker* logWorkerPtr, std::unique_ptr<Actions> actionsPtr) :
+Server::Server(unsigned int port, unsigned int maxSessions, g3::LogWorker* logWorkerPtr) :
 	port(port),
 	maxSessions(maxSessions),
 	logWorkerPtr(logWorkerPtr),
-	actionsPtr(std::move(actionsPtr)),
 	stopping(false) {
 	LOG(DEBUG) << "CLI: Server object was created (id=" << this << ")";
 }
@@ -114,8 +113,8 @@ asio::ip::tcp::acceptor* Server::getAcceptor() {
 }
 
 
-Actions* Server::getActions() const {
-	return actionsPtr.get();
+Actions& Server::getActions() {
+	return actions;
 }
 
 

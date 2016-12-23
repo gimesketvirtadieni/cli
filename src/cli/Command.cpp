@@ -284,7 +284,7 @@ void Command::handleAction() {
 
 	// invoking command action handler
 	auto parameters = splitIntoWords(prefixPtr);
-	sessionPtr->getServer()->getActions()->findAction(parameters).getHandler()(this, parameters);
+	sessionPtr->getServer()->getActions().findAction(parameters).getHandler()(this, parameters);
 
 	// displaying prompt message
 	sessionPtr->sendPrompt(false);
@@ -311,8 +311,8 @@ void Command::handleClose() {
 	std::cout << "Command::handleClose begin" << std::endl << std::flush;
 
 	// canceling pending operations; this will ensure logout will be the last message
-	// TODO: ...
-	sessionPtr->getSocket()->cancel();
+	// TODO: it is not clear if canceling of any send operations is required as only one command is run at a time
+	//sessionPtr->getSocket()->cancel();
 
 	// echoing logout message back to the client
 	sessionPtr->getSocket()->send("logout\r\n");

@@ -133,3 +133,8 @@ void Socket::send(std::weak_ptr<asio::ip::tcp::socket> nativeSocketWeakPtr, cons
 		std::cout << "Socket::send Error: unexpected exception" << std::endl << std::flush;
 	}
 }
+
+
+void Socket::sendEndOfLine() {
+	send("\n\r");
+}

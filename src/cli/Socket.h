@@ -22,7 +22,7 @@ class Socket {
 		void     send(const char*);
 		void     send(const char*, const std::size_t);
 		void     send(const std::shared_ptr<std::string>);
-		bool     sentEndOfLine();
+		void     sendEndOfLine();
 
 	protected:
 		static void send(std::weak_ptr<asio::ip::tcp::socket>, const char*, const std::size_t);

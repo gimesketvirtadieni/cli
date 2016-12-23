@@ -2,8 +2,16 @@
 #define Mocks_INCLUDED
 
 #include <atomic>
-#include <boost/asio.hpp>
+#include <asio.hpp>
 #include <chrono>
+#include <cli/Actions.h>
+#include <cli/Messages.h>
+#include <cli/Server.h>
+#include <cli/SessionBase.hpp>
+#include <conwrap/ProcessorAsio.hpp>
+#include <conwrap/ProcessorQueue.hpp>
+#include <functional>
+#include <g3log/logworker.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
@@ -72,9 +80,9 @@ struct ThreadMock {
 
 
 struct DispatcherMock {
-	mutable boost::asio::io_service dispatcher;
-	mutable bool                    enableResetHook = true;
-	mutable bool                    enableRunHook   = true;
+	mutable asio::io_service dispatcher;
+	mutable bool             enableResetHook = true;
+	mutable bool             enableRunHook   = true;
 
 	DispatcherMock() {}
 
@@ -130,12 +138,83 @@ struct DispatcherMock {
 };
 
 
-struct Dummy {
-	Dummy() {}
-	Dummy(Processor<Dummy>* processorPtr) : processorPtr(processorPtr) {}
-	virtual ~Dummy() {}
+struct Dummy {};
 
-	Processor<Dummy>* processorPtr;
+
+struct SocketMock {
+	conwrap::ProcessorAsio<Server>* processorServerPtr;
+	std::vector<std::string>        sentMessages;
+
+
+	SocketMock() {}
+
+
+	explicit SocketMock(conwrap::ProcessorAsio<Server>* processorServerPtr) : processorServerPtr(processorServerPtr) {}
+
+
+	void close()
+	{
+		// invoking an empty hook so it can be mocked
+		closeHook();
+	}
+	MOCK_METHOD0(closeHook, void());
+
+
+	void open(std::function<void(const std::error_code&)> openHandler)
+	{
+		processorServerPtr->process([this, openHandler]
+		{
+			// this delay simulates that session open is an async event
+			std::this_thread::sleep_for(std::chrono::milliseconds{10});
+
+			// invoking an empty hook so it can be mocked
+			this->openHook();
+
+			openHandler(std::error_code());
+		});
+	}
+	MOCK_METHOD0(openHook, void());
+
+	void receive(char*, const std::size_t, std::function<void(const std::error_code&, std::size_t)>) {
+	}
+
+	void send(const char* str) {
+		sentMessages.push_back(std::string(str));
+	}
+
+	void send(const char* buffer, const std::size_t size) {
+		//sentMessages.push_back(std::string(str));
+	}
+
+	void send(const std::shared_ptr<std::string> str) {
+		sentMessages.push_back(std::string(*str));
+	}
+};
+
+
+struct SessionBaseMock : public SessionBase<SessionBaseMock, SocketMock> {
+	explicit SessionBaseMock(Server* serverPtr, std::unique_ptr<SocketMock> socketPtr) :
+		SessionBase(serverPtr, std::move(socketPtr)) {}
+
+	virtual std::unique_ptr<Command> createCommand(const char*, std::size_t, std::size_t) {
+		return std::unique_ptr<Command>();
+	}
+
+	virtual void process(std::unique_ptr<Command>) {};
+
+	void dataCallback(SessionBaseMock*, const std::error_code error, std::size_t receivedSize) {
+
+		// invoking an empty hook so it can be mocked
+		dataCallbackHook();
+	}
+	MOCK_METHOD0(dataCallbackHook, void());
+
+	void openCallback(SessionBaseMock*) {
+
+		// invoking an empty hook so it can be mocked
+		openCallbackHook();
+	}
+	MOCK_METHOD0(openCallbackHook, void());
 };
 
 #endif // Mocks_INCLUDED
