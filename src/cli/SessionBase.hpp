@@ -36,13 +36,7 @@ class SessionBase {
 
 		inline void close(const std::error_code error = std::error_code())
 		{
-			// invoking onClose handler just before socket is closed
-			serverPtr->getProcessorProxy()->wrap([=]
-			{
-				onClose(error);
-			})();
-
-			// closing the socket
+			// closing the socket; no need to invoke onClose here as acceptor will fire onOpen with an error which will trigger onClose
 			getSocket()->close();
 		}
 
@@ -269,9 +263,8 @@ class SessionBase {
 
 		void onOpen(const std::error_code error) {
 
-			// if error then closing this session
 			if (error) {
-				LOG(DEBUG) << "CLI: Session was not opened (id=" << this << ", error='" << error.message() << "')";
+				onClose(error);
 			} else {
 				LOG(DEBUG) << "CLI: Opening session (id=" << this << ")...";
 
