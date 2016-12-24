@@ -21,6 +21,7 @@ class SessionBase {
 			serverPtr(serverPtr),
 			socketPtr(std::move(socketPtr)),
 			bufferUsed(0),
+			closed(false),
 			promptWasSent(false) {}
 
 
@@ -36,8 +37,16 @@ class SessionBase {
 
 		inline void close(const std::error_code error = std::error_code())
 		{
-			// closing the socket; no need to invoke onClose here as acceptor will fire onOpen with an error which will trigger onClose
-			getSocket()->close();
+			// there is no need to invoke onClose explicitly if session is not established
+			if (!closed) {
+				onClose(error);
+
+				// closing the socket
+				getSocket()->close();
+
+				// setting closed flag to make sure onClose callback is invoked only once
+				closed = true;
+			}
 		}
 
 
@@ -61,6 +70,7 @@ class SessionBase {
 			// opening a socket; onOpen will be called once socket receives incomming connection
 			getSocket()->open([=](const std::error_code code)
 			{
+				// this callback will be invoked on Asio thread, so it needs to be passed to the server's thread
 				serverPtr->getProcessorProxy()->wrap([=]
 				{
 					onOpen(code);
@@ -197,7 +207,7 @@ class SessionBase {
 
 			// if error then closing this session
 			if (error) {
-				onClose(error);
+				close(error);
 			} else {
 				LOG(DEBUG) << "CLI: Data was received on session (id=" << this << ", bytes=" << receivedSize << ")";
 
@@ -264,7 +274,7 @@ class SessionBase {
 		void onOpen(const std::error_code error) {
 
 			if (error) {
-				onClose(error);
+				close(error);
 			} else {
 				LOG(DEBUG) << "CLI: Opening session (id=" << this << ")...";
 
@@ -295,6 +305,7 @@ class SessionBase {
         std::function<void (SessionType*, const std::error_code&, const std::size_t&)> dataCallback;
         std::function<void (SessionType*)>                                             openCallback;
 		std::vector<std::unique_ptr<Command>>                                          commands;
+    	bool                                                                           closed;
     	bool                                                                           promptWasSent;
 
 		// TODO: ...
