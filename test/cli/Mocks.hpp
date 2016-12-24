@@ -17,11 +17,15 @@
 #include <memory>
 #include <thread>
 
+#include <system_error>
+#include <bits/error_constants.h>
 #include <iostream>
 #include <log/log.h>
 
 
 // forward declaration
+struct SessionBaseMock;
+/*
 template <typename ThreadType, typename DispatcherType, typename ResourceType>
 class ProcessorImpl;
 template <typename ResourceType>
@@ -136,27 +140,27 @@ struct DispatcherMock {
 	}
 	MOCK_METHOD0(stopHook, void());
 };
-
+*/
 
 struct Dummy {};
 
 
-struct SocketMock {
+struct SocketMock
+{
 	conwrap::ProcessorAsio<Server>* processorServerPtr;
+	SessionBaseMock*                sessionBaseMockPtr;
 	std::vector<std::string>        sentMessages;
 
 
 	SocketMock() {}
 
 
-	explicit SocketMock(conwrap::ProcessorAsio<Server>* processorServerPtr) : processorServerPtr(processorServerPtr) {}
+	explicit SocketMock(conwrap::ProcessorAsio<Server>* p)
+	: processorServerPtr(p) {}
 
 
-	void close()
-	{
-		// invoking an empty hook so it can be mocked
-		closeHook();
-	}
+	// implementation is defined after SessionBaseMock declaration
+	void close();
 	MOCK_METHOD0(closeHook, void());
 
 
@@ -175,46 +179,94 @@ struct SocketMock {
 	}
 	MOCK_METHOD0(openHook, void());
 
-	void receive(char*, const std::size_t, std::function<void(const std::error_code&, std::size_t)>) {
-	}
 
-	void send(const char* str) {
+	void receive(char*, const std::size_t, std::function<void(const std::error_code&, std::size_t)>) {}
+
+
+	void send(const char* str)
+	{
 		sentMessages.push_back(std::string(str));
 	}
 
-	void send(const char* buffer, const std::size_t size) {
+
+	void send(const char* buffer, const std::size_t size)
+	{
 		//sentMessages.push_back(std::string(str));
 	}
 
-	void send(const std::shared_ptr<std::string> str) {
+
+	void send(const std::shared_ptr<std::string> str)
+	{
 		sentMessages.push_back(std::string(*str));
+	}
+
+	void setSession(SessionBaseMock* s)
+	{
+		sessionBaseMockPtr = s;
 	}
 };
 
 
-struct SessionBaseMock : public SessionBase<SessionBaseMock, SocketMock> {
-	explicit SessionBaseMock(Server* serverPtr, std::unique_ptr<SocketMock> socketPtr) :
-		SessionBase(serverPtr, std::move(socketPtr)) {}
+struct SessionBaseMock : public SessionBase<SessionBaseMock, SocketMock>
+{
+	explicit SessionBaseMock(conwrap::ProcessorAsio<Server>* processorServerPtr, std::unique_ptr<SocketMock> socketPtr)
+	: SessionBase(processorServerPtr->getResource(), std::move(socketPtr)) {}
 
-	virtual std::unique_ptr<Command> createCommand(const char*, std::size_t, std::size_t) {
+
+	virtual std::unique_ptr<Command> createCommand(const char*, std::size_t, std::size_t)
+	{
 		return std::unique_ptr<Command>();
 	}
 
+
+	// rewriting visibility
+	void onOpen(const std::error_code error)
+	{
+		SessionBase::onOpen(error);
+	}
+
+
 	virtual void process(std::unique_ptr<Command>) {};
 
-	void dataCallback(SessionBaseMock*, const std::error_code error, std::size_t receivedSize) {
 
+	void closeCallback(SessionBaseMock*, const std::error_code error)
+	{
+		// invoking an empty hook so it can be mocked
+		closeCallbackHook();
+	}
+	MOCK_METHOD0(closeCallbackHook, void());
+
+
+	void dataCallback(SessionBaseMock*, const std::error_code error, std::size_t receivedSize)
+	{
 		// invoking an empty hook so it can be mocked
 		dataCallbackHook();
 	}
 	MOCK_METHOD0(dataCallbackHook, void());
 
-	void openCallback(SessionBaseMock*) {
 
+	void openCallback(SessionBaseMock*)
+	{
 		// invoking an empty hook so it can be mocked
 		openCallbackHook();
 	}
 	MOCK_METHOD0(openCallbackHook, void());
 };
+
+
+void SocketMock::close()
+{
+	// invoking onOpen explicitly as Asio invokes it implicitly
+	processorServerPtr->process([=]
+	{
+		// this delay simulates that session close is an async event
+		std::this_thread::sleep_for(std::chrono::milliseconds{10});
+
+		sessionBaseMockPtr->onOpen(std::make_error_code(std::errc::connection_aborted));
+	});
+
+	// invoking an empty hook so it can be mocked
+	closeHook();
+}
 
 #endif // Mocks_INCLUDED

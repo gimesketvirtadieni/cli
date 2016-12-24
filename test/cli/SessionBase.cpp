@@ -13,12 +13,14 @@ TEST(SessionBase, Constructor1) {
 	);
 
 	// creating session mock instance to be tested
-	auto socketPtr    = std::make_unique<SocketMock>();
-	auto socketRawPtr = socketPtr.get();
-	conwrap::ProcessorQueue<SessionBaseMock> processorSessionMock(
-		processorServer.getResource(),
+	auto socketPtr          = std::make_unique<SocketMock>();
+	auto socketRawPtr       = socketPtr.get();
+	auto sessionBaseMockPtr = std::make_unique<SessionBaseMock>(
+		&processorServer,
 		std::move(socketPtr)
 	);
+	socketRawPtr->setSession(sessionBaseMockPtr.get());
+	conwrap::ProcessorQueue<SessionBaseMock> processorSessionMock(std::move(sessionBaseMockPtr));
 
 	// testing SessionBase::getResource, SessionBase::getServer and SessionBase::getSocket which are accessed via session mock object
 	ASSERT_TRUE(processorSessionMock.getResource() != nullptr);
@@ -37,14 +39,16 @@ TEST(SessionBase, Open1) {
 	);
 
 	// creating session mock instance to be tested
-	auto socketPtr    = std::make_unique<SocketMock>(&processorServer);
-	auto socketRawPtr = socketPtr.get();
-	conwrap::ProcessorQueue<SessionBaseMock> processorSessionMock(
-		processorServer.getResource(),
+	auto socketPtr          = std::make_unique<SocketMock>(&processorServer);
+	auto socketRawPtr       = socketPtr.get();
+	auto sessionBaseMockPtr = std::make_unique<SessionBaseMock>(
+		&processorServer,
 		std::move(socketPtr)
 	);
+	socketRawPtr->setSession(sessionBaseMockPtr.get());
+	conwrap::ProcessorQueue<SessionBaseMock> processorSessionMock(std::move(sessionBaseMockPtr));
 
-	// setting SessionBaseMock::dataCallback callback by invoking SessionBase::setDataCallback
+	// setting SessionBaseMock::dataCallback handler by invoking SessionBase::setDataCallback
 	processorSessionMock.getResource()->setDataCallback(
 		std::bind(
 			&SessionBaseMock::dataCallback,
@@ -55,7 +59,7 @@ TEST(SessionBase, Open1) {
 		)
 	);
 
-	// setting SessionBaseMock::openCallback callback by invoking SessionBase::setOpenCallback
+	// setting SessionBaseMock::openCallback handler by invoking SessionBase::setOpenCallback
 	processorSessionMock.getResource()->setOpenCallback(
 		std::bind(
 			&SessionBaseMock::openCallback,
@@ -106,14 +110,26 @@ TEST(SessionBase, Close1) {
 	);
 
 	// creating session mock instance to be tested
-	auto socketPtr = std::make_unique<SocketMock>(&processorServer);
-	conwrap::ProcessorQueue<SessionBaseMock> processorSessionMock(
-		processorServer.getResource(),
+	auto socketPtr          = std::make_unique<SocketMock>(&processorServer);
+	auto socketRawPtr       = socketPtr.get();
+	auto sessionBaseMockPtr = std::make_unique<SessionBaseMock>(
+		&processorServer,
 		std::move(socketPtr)
+	);
+	socketRawPtr->setSession(sessionBaseMockPtr.get());
+	conwrap::ProcessorQueue<SessionBaseMock> processorSessionMock(std::move(sessionBaseMockPtr));
+
+	// setting SessionBaseMock::closeCallback handler by invoking SessionBase::setCloseCallback
+	processorSessionMock.getResource()->setCloseCallback(
+		std::bind(
+			&SessionBaseMock::closeCallback,
+			processorSessionMock.getResource(),
+			std::placeholders::_1,
+			std::placeholders::_2
+		)
 	);
 
 	// defining expectations
-/*
 	testing::Sequence s;
 	EXPECT_CALL(*socketRawPtr, closeHook())
 		.Times(1)
@@ -121,11 +137,11 @@ TEST(SessionBase, Close1) {
 	EXPECT_CALL(*processorSessionMock.getResource(), closeCallbackHook())
 		.Times(1)
 		.InSequence(s);
-*/
+
 	// invoking open method from CLI server processor's thread
 	processorServer.process(
 		[&] {
-			processorSessionMock.getResource()->closee();
+			processorSessionMock.getResource()->close();
 		}
 	);
 
