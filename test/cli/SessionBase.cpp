@@ -81,11 +81,10 @@ TEST(SessionBase, Open1) {
 		.InSequence(s);
 
 	// invoking open method from CLI server processor's thread
-	processorServer.process(
-		[&] {
-			processorSessionMock.getResource()->open();
-		}
-	);
+	processorServer.process([&]
+	{
+		processorSessionMock.getResource()->open();
+	});
 
 	// waiting for all tasks to complete
 	processorServer.flush();
@@ -131,19 +130,18 @@ TEST(SessionBase, Close1) {
 
 	// defining expectations
 	testing::Sequence s;
-	EXPECT_CALL(*socketRawPtr, closeHook())
+	EXPECT_CALL(*processorSessionMock.getResource(), closeCallbackHook())
 		.Times(1)
 		.InSequence(s);
-	EXPECT_CALL(*processorSessionMock.getResource(), closeCallbackHook())
+	EXPECT_CALL(*socketRawPtr, closeHook())
 		.Times(1)
 		.InSequence(s);
 
 	// invoking open method from CLI server processor's thread
-	processorServer.process(
-		[&] {
-			processorSessionMock.getResource()->close();
-		}
-	);
+	processorServer.process([&]
+	{
+		processorSessionMock.getResource()->close();
+	});
 
 	// waiting for all tasks to complete
 	processorServer.flush();
