@@ -271,9 +271,9 @@ class SessionBase {
 
 			// if error then closing this session
 			if (error) {
-				onClose(error);
+				LOG(DEBUG) << "CLI: Session was not opened (id=" << this << ", error='" << error.message() << "')";
 			} else {
-				LOG(DEBUG) << "CLI: Opening session (id=" << this << "')...";
+				LOG(DEBUG) << "CLI: Opening session (id=" << this << ")...";
 
 				// invoking open callback
 				if (openCallback) {
