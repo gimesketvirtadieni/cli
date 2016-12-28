@@ -19,7 +19,6 @@ class SessionBase {
 		: serverPtr(se)
 		, socketPtr(std::move(so))
 		, bufferUsed(0)
-		, closed(false)
 		, promptWasSent(false) {}
 
 
@@ -35,25 +34,11 @@ class SessionBase {
 
 		inline void close(const std::error_code error = std::error_code())
 		{
-			// there is no need to invoke onClose explicitly if session is not established
-			//if (!closed) {
+			// echoing logout message back to the client
+			getSocket()->send("logout\r\n");
 
-				// invoking onCancel routine
-				//onClose(error);
-
-				// echoing logout message back to the client
-				getSocket()->send("logout\r\n");
-
-				// canceling pending operations; this will ensure logout will be the last message
-				// TODO: it is not clear if canceling of any send operations is required as only one command is run at a time
-				//getSocket()->cancel();
-
-				// closing the socket
-				getSocket()->close();
-
-				// setting closed flag to make sure this routine is done only once
-				//closed = true;
-			//}
+			// closing the socket; there is no need to invoke onClose here as it will be done by onOpen / onData methods
+			getSocket()->close();
 		}
 
 
@@ -311,7 +296,6 @@ class SessionBase {
         std::function<void (SessionType*, const std::error_code&, const std::size_t&)> dataCallback;
         std::function<void (SessionType*)>                                             openCallback;
 		std::vector<std::unique_ptr<Command>>                                          commands;
-    	bool                                                                           closed;
     	bool                                                                           promptWasSent;
 
 		// TODO: ...
