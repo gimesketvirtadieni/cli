@@ -1,18 +1,17 @@
-#include <chrono>
 #include <cli/Actions.h>
 #include <cli/Command.h>
 #include <cli/Server.h>
 #include <cli/Session.h>
 #include <cli/Socket.h>
 #include <log/log.h>
-#include <thread>
 
 
-Server::Server(unsigned int p, unsigned int m, g3::LogWorker* l) :
-	port(p),
-	maxSessions(m),
-	logWorkerPtr(l),
-	stopping(false) {
+Server::Server(unsigned int p, unsigned int m, g3::LogWorker* l)
+	: port(p)
+	, maxSessions(m)
+	, logWorkerPtr(l)
+	, stopping(false)
+{
 	LOG(DEBUG) << "CLI: Server object was created (id=" << this << ")";
 }
 
@@ -65,17 +64,7 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 					[this, sessionPtr] {
 
 						// by the time this handler is processed session might be deleted however sessionPtr is good enough for comparison
-						sessions.erase(
-							std::remove_if(
-								sessions.begin(),
-								sessions.end(),
-								[&](auto& savedSessionPtr) -> bool {
-									return sessionPtr == savedSessionPtr->getResource();
-								}
-							),
-							sessions.end()
-						);
-						LOG(DEBUG) << "CLI: Session was removed (id=" << this << ", sessions=" << sessions.size() << ")";
+						deleteSession(sessionPtr);
 
 						// starting acceptor if required
 						if (!acceptorPtr) {
@@ -191,9 +180,6 @@ void Server::stop() {
 	for (auto& sessionProcessorPtr : sessions) {
 		sessionProcessorPtr->getResource()->close();
 	}
-
-	std::chrono::milliseconds wait{1000};
-	std::this_thread::sleep_for(wait);
 
 	LOG(INFO) << "CLI: Server was stopped (id=" << this << ")";
 }
