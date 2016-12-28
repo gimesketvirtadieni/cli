@@ -31,6 +31,7 @@ class Server {
 
 	protected:
 		std::unique_ptr<conwrap::ProcessorQueue<Session>> createSession();
+		void                                              deleteSession(Session*);
 		void                                              startAcceptor();
 		void                                              stopAcceptor();
 

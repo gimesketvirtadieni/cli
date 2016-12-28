@@ -1,19 +1,17 @@
+#include <chrono>
 #include <cli/Actions.h>
 #include <cli/Command.h>
 #include <cli/Server.h>
 #include <cli/Session.h>
 #include <cli/Socket.h>
 #include <log/log.h>
-
-#include <chrono>
 #include <thread>
-//#include <iostream>
 
 
-Server::Server(unsigned int port, unsigned int maxSessions, g3::LogWorker* logWorkerPtr) :
-	port(port),
-	maxSessions(maxSessions),
-	logWorkerPtr(logWorkerPtr),
+Server::Server(unsigned int p, unsigned int m, g3::LogWorker* l) :
+	port(p),
+	maxSessions(m),
+	logWorkerPtr(l),
 	stopping(false) {
 	LOG(DEBUG) << "CLI: Server object was created (id=" << this << ")";
 }
@@ -31,10 +29,10 @@ Server::~Server() {
 std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 
 	// creating session object per connection
-	auto sessionProcessorPtr = std::make_unique<conwrap::ProcessorQueue<Session>>(this);
+	auto processorSessionPtr = std::make_unique<conwrap::ProcessorQueue<Session>>(this);
 
 	// setting onOpen event handler
-	sessionProcessorPtr->getResource()->setOpenCallback(
+	processorSessionPtr->getResource()->setOpenCallback(
 		[this](Session* sessionPtr) {
 			LOG(DEBUG) << "CLI: Open session callback started (id=" << sessionPtr << ", stopping=" << stopping << ", sessions=" << sessions.size() << ")";
 
@@ -43,26 +41,26 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 
 				// registering a new session if capacity allows so new requests can be accepted
 				if (sessions.size() < maxSessions) {
-					sessions.push_back(createSession());
+					sessions.push_back(std::move(createSession()));
 					LOG(DEBUG) << "CLI: Session was added (id=" << this << ", sessions=" << sessions.size() << ")";
 				} else {
+					LOG(DEBUG) << "CLI: Limit of active sessions was reached (id=" << this << ", sessions=" << sessions.size() << " max=" << maxSessions << ")";
 					stopAcceptor();
 				}
 			}
-
 			LOG(DEBUG) << "CLI: Open session callback completed (id=" << sessionPtr << ", stopping=" << stopping << ", sessions=" << sessions.size() << ")";
 		}
 	);
 
 	// setting onClose event handler
-	sessionProcessorPtr->getResource()->setCloseCallback(
+	processorSessionPtr->getResource()->setCloseCallback(
 		[this](Session* sessionPtr, const std::error_code& error) {
 			LOG(DEBUG) << "CLI: Close session callback started (id=" << sessionPtr << ", stopping=" << stopping << ", sessions=" << sessions.size() << ")";
 
-			// remove session routing is different while stopping the server
+			// removing session route is different while stopping the server
 			if (!stopping) {
 
-				// posponing removing session from the vector
+				// session cannot be deleted at this moment as this method is called withing this session
 				processorProxyPtr->process(
 					[this, sessionPtr] {
 
@@ -83,11 +81,6 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 						if (!acceptorPtr) {
 							startAcceptor();
 						}
-
-						// start accepting new requests if required
-						if (sessions.size() < maxSessions) {
-							sessions.push_back(createSession());
-						}
 					}
 				);
 			}
@@ -97,14 +90,28 @@ std::unique_ptr<conwrap::ProcessorQueue<Session>> Server::createSession() {
 	);
 
 	// start listening to the incoming requests
-	processorProxyPtr->process(
-		[this, sessionPtr = sessionProcessorPtr->getResource()] {
-			sessionPtr->open();
-		}
-	);
+	processorSessionPtr->getResource()->open();
 
-	LOG(DEBUG) << "CLI: New session was created (id=" << sessionProcessorPtr->getResource() << ")";
-	return std::move(sessionProcessorPtr);
+	LOG(DEBUG) << "CLI: New session was created (id=" << processorSessionPtr->getResource() << ")";
+	return std::move(processorSessionPtr);
+}
+
+
+void Server::deleteSession(Session* sessionPtr)
+{
+	// removing session from the vector
+	sessions.erase(
+		std::remove_if(
+			sessions.begin(),
+			sessions.end(),
+			[&](auto& processorSessionPtr) -> bool
+			{
+				return sessionPtr == processorSessionPtr->getResource();
+			}
+		),
+		sessions.end()
+	);
+	LOG(DEBUG) << "CLI: Session was removed (id=" << this << ", sessions=" << sessions.size() << ")";
 }
 
 
@@ -149,7 +156,7 @@ void Server::start() {
 	startAcceptor();
 
 	// creating new session used for accepting connections
-	sessions.push_back(createSession());
+	sessions.push_back(std::move(createSession()));
 
 	LOG(INFO) << "CLI: Server was started (id=" << this << ")";
 }

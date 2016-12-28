@@ -11,18 +11,16 @@
 #include <memory>
 #include <vector>
 
-//#include <iostream>
-
 
 template <typename SessionType, typename SocketType>
 class SessionBase {
 	public:
-		explicit SessionBase(Server* serverPtr, std::unique_ptr<SocketType> socketPtr) :
-			serverPtr(serverPtr),
-			socketPtr(std::move(socketPtr)),
-			bufferUsed(0),
-			closed(false),
-			promptWasSent(false) {}
+		explicit SessionBase(Server* se, std::unique_ptr<SocketType> so)
+		: serverPtr(se)
+		, socketPtr(std::move(so))
+		, bufferUsed(0)
+		, closed(false)
+		, promptWasSent(false) {}
 
 
 		inline void cancel() {
@@ -38,15 +36,24 @@ class SessionBase {
 		inline void close(const std::error_code error = std::error_code())
 		{
 			// there is no need to invoke onClose explicitly if session is not established
-			if (!closed) {
-				onClose(error);
+			//if (!closed) {
+
+				// invoking onCancel routine
+				//onClose(error);
+
+				// echoing logout message back to the client
+				getSocket()->send("logout\r\n");
+
+				// canceling pending operations; this will ensure logout will be the last message
+				// TODO: it is not clear if canceling of any send operations is required as only one command is run at a time
+				//getSocket()->cancel();
 
 				// closing the socket
 				getSocket()->close();
 
-				// setting closed flag to make sure onClose callback is invoked only once
-				closed = true;
-			}
+				// setting closed flag to make sure this routine is done only once
+				//closed = true;
+			//}
 		}
 
 
@@ -70,7 +77,7 @@ class SessionBase {
 			// opening a socket; onOpen will be called once socket receives incomming connection
 			getSocket()->open([=](const std::error_code code)
 			{
-				// this callback will be invoked on Asio thread, so it needs to be passed to the server's thread
+				// this callback will be invoked on Asio's thread, so it must be passed to the server's thread
 				serverPtr->getProcessorProxy()->wrap([=]
 				{
 					onOpen(code);
@@ -207,9 +214,8 @@ class SessionBase {
 
 			// if error then closing this session
 			if (error) {
-				close(error);
+				onClose(error);
 			} else {
-				LOG(DEBUG) << "CLI: Data was received on session (id=" << this << ", bytes=" << receivedSize << ")";
 
 				// invoking onData callback
 				if (dataCallback) {
@@ -251,22 +257,22 @@ class SessionBase {
 					}
 				}
 
-				// keep receiving data
-				getServer()->getProcessorProxy()->process(
-					[=] {
-						getSocket()->receive(
-							buffer + bufferUsed,
-							sizeof(buffer) - bufferUsed,
-							[=](const std::error_code error, std::size_t bytes_transferred)
+				// submitting a new task here allows other tasks to progress
+				getServer()->getProcessorProxy()->process([=]
+				{
+					// keep receiving data 'recursivelly' except task processor is used instead of stack
+					getSocket()->receive(
+						buffer + bufferUsed,
+						sizeof(buffer) - bufferUsed,
+						[=](const std::error_code error, std::size_t bytes_transferred)
+						{
+							serverPtr->getProcessorProxy()->wrap([=]
 							{
-								serverPtr->getProcessorProxy()->wrap([=]
-								{
-									onData(error, bytes_transferred);
-								})();
-							}
-						);
-					}
-				);
+								onData(error, bytes_transferred);
+							})();
+						}
+					);
+				});
 			}
 		}
 
@@ -274,7 +280,7 @@ class SessionBase {
 		void onOpen(const std::error_code error) {
 
 			if (error) {
-				close(error);
+				onClose(error);
 			} else {
 				LOG(DEBUG) << "CLI: Opening session (id=" << this << ")...";
 
@@ -289,7 +295,7 @@ class SessionBase {
 				// displaying prompt message
 				getSocket()->send(getServer()->getPromptMessage());
 
-				// starting to receive data
+				// start receiving data
 				onData(error, 0);
 
 				LOG(DEBUG) << "CLI: Session was opened (id=" << this << ")";

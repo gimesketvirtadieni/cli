@@ -3,8 +3,6 @@
 #include <cli/Socket.h>
 #include <log/log.h>
 
-#include <iostream>
-
 
 Socket::Socket(Session* sessionPtr, asio::io_service* dispatcherPtr) :
 	sessionPtr(sessionPtr) {
@@ -59,12 +57,8 @@ void Socket::close() {
 	if (nativeSocketPtr->is_open()) {
 		LOG(DEBUG) << "CLI: Closing socket (id=" << this << ")...";
 
-		try {
-			nativeSocketPtr->shutdown(asio::socket_base::shutdown_both);
-		} catch (...) {}
-		try {
-			nativeSocketPtr->close();
-		} catch (...) {}
+		nativeSocketPtr->shutdown(asio::socket_base::shutdown_both);
+		nativeSocketPtr->close();
 
 		LOG(DEBUG) << "CLI: Socket was closed (id=" << this << ")";
 	}
@@ -96,15 +90,11 @@ void Socket::open(std::function<void(const std::error_code&)> callback) {
 
 void Socket::receive(char* data, const std::size_t size, std::function<void(const std::error_code& error, std::size_t bytes_transferred)> callback) {
 
-	// reading from socket
-	if (nativeSocketPtr && nativeSocketPtr->is_open()) try {
-		nativeSocketPtr->async_read_some(
-			asio::buffer(data, size),
-			callback
-		);
-	} catch (...) {
-		std::cout << "Socket::receiveAsync Error: unexpected exception" << std::endl << std::flush;
-	}
+	// no need to check if socket is open here as callback must receive an error if any
+	nativeSocketPtr->async_read_some(
+		asio::buffer(data, size),
+		callback
+	);
 }
 
 
@@ -127,10 +117,8 @@ void Socket::send(std::weak_ptr<asio::ip::tcp::socket> nativeSocketWeakPtr, cons
 
 	// writting to a socket
 	auto nativeSocketPtr = nativeSocketWeakPtr.lock();
-	if (nativeSocketPtr && nativeSocketPtr->is_open()) try {
+	if (nativeSocketPtr && nativeSocketPtr->is_open()) {
 		nativeSocketPtr->send(asio::buffer(data, size));
-	} catch (...) {
-		std::cout << "Socket::send Error: unexpected exception" << std::endl << std::flush;
 	}
 }
 

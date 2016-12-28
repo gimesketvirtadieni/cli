@@ -292,7 +292,7 @@ void Command::handleAction() {
 
 
 void Command::handleCancel() {
-	std::cout << "Command::handleCancel begin" << std::endl << std::flush;
+	LOG(DEBUG) << "CLI: Command::handleCancel begin (id=" << this << ")";
 
 	// echoing Control-C sign back to the client
 	sessionPtr->getSocket()->send("^C");
@@ -303,24 +303,16 @@ void Command::handleCancel() {
 	// displaying end-of-line and prompt message
 	sessionPtr->sendPrompt(true);
 
-	std::cout << "Command::handleCancel end" << std::endl << std::flush;
+	LOG(DEBUG) << "CLI: Command::handleCancel end (id=" << this << ")";
 }
 
 
 void Command::handleClose() {
-	std::cout << "Command::handleClose begin" << std::endl << std::flush;
+	LOG(DEBUG) << "CLI: Command::handleClose begin (id=" << this << ")";
 
-	// canceling pending operations; this will ensure logout will be the last message
-	// TODO: it is not clear if canceling of any send operations is required as only one command is run at a time
-	//sessionPtr->getSocket()->cancel();
-
-	// echoing logout message back to the client
-	sessionPtr->getSocket()->send("logout\r\n");
-
-	// closing session
 	sessionPtr->close();
 
-	std::cout << "Command::handleClose end" << std::endl << std::flush;
+	LOG(DEBUG) << "CLI: Command::handleClose end (id=" << this << ")";
 }
 
 
