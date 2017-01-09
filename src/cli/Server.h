@@ -21,7 +21,7 @@ class Server {
 		                                     Server(unsigned int, unsigned int, g3::LogWorker*);
 		                                    ~Server();
 		asio::ip::tcp::acceptor*             getAcceptor();
-		Actions&                             getActions();
+		Actions*                             getActions();
 		g3::LogWorker*                       getLogger();
 	    std::shared_ptr<std::string>         getPromptMessage();
 	    conwrap::ProcessorAsioProxy<Server>* getProcessorProxy();

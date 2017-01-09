@@ -93,6 +93,9 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.dialect.std.1647412602" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.other.394038760" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1313100931" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ASIO_STANDALONE"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.460433041" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1842746082" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -140,10 +143,10 @@
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/CLI"/>
 		</configuration>
+		<configuration configurationName="UnitTest"/>
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/CLI"/>
 		</configuration>
-		<configuration configurationName="UnitTest"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="scannerConfiguration">

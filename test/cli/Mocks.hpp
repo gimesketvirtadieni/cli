@@ -160,11 +160,7 @@ struct SocketMock
 
 
 	// implementation is defined after SessionBaseMock declaration
-	void close()
-	{
-		// invoking an empty hook so it can be mocked
-		closeHook();
-	}
+	void close();
 	MOCK_METHOD0(closeHook, void());
 
 
@@ -263,5 +259,21 @@ struct SessionBaseMock : public SessionBase<SessionBaseMock, SocketMock>
 	}
 	MOCK_METHOD0(openCallbackHook, void());
 };
+
+
+void SocketMock::close()
+{
+	processorServerPtr->process([=]
+	{
+		// this delay simulates that session close is an async event
+		std::this_thread::sleep_for(std::chrono::milliseconds{10});
+
+		// to simulate Asio invoking onOpen explicitly
+		sessionBaseMockPtr->onOpen(std::make_error_code(std::errc::connection_aborted));
+	});
+
+	// invoking an empty hook so it can be mocked
+	closeHook();
+}
 
 #endif // Mocks_INCLUDED

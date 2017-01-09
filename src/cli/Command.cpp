@@ -4,6 +4,7 @@
 #include <cli/Server.h>
 #include <cli/Session.h>
 #include <cli/Socket.h>
+#include <cli/SocketBuffer.h>
 #include <log/log.h>
 
 #include <iostream>
@@ -278,13 +279,17 @@ bool Command::isAsync() {
 
 
 void Command::handleAction() {
+	SocketBuffer buffer(sessionPtr->getSocket());
+	std::ostream out(&buffer);
+
+	out << "hello1";
 
 	// echoing end-of-line back to the client before processing action
 	sessionPtr->getSocket()->send("\r\n");
 
 	// invoking command action handler
 	auto parameters = splitIntoWords(prefixPtr);
-	sessionPtr->getServer()->getActions().findAction(parameters).getHandler()(this, parameters);
+	sessionPtr->getServer()->getActions()->findAction(parameters).getHandler()(this, parameters);
 
 	// displaying prompt message
 	sessionPtr->sendPrompt(false);

@@ -35,7 +35,8 @@ class SessionBase {
 		inline void close(const std::error_code error = std::error_code())
 		{
 			// echoing logout message back to the client
-			getSocket()->send("logout\r\n");
+			getSocket()->send(CLI::Messages::logout);
+			getSocket()->send(CLI::Messages::endOfLine);
 
 			// closing the socket; there is no need to invoke onClose here as it will be done by onOpen / onData methods
 			getSocket()->close();

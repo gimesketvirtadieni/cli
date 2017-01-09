@@ -130,10 +130,10 @@ TEST(SessionBase, Close1) {
 
 	// defining expectations
 	testing::Sequence s;
-	EXPECT_CALL(*processorSessionMock.getResource(), closeCallbackHook())
+	EXPECT_CALL(*socketRawPtr, closeHook())
 		.Times(1)
 		.InSequence(s);
-	EXPECT_CALL(*socketRawPtr, closeHook())
+	EXPECT_CALL(*processorSessionMock.getResource(), closeCallbackHook())
 		.Times(1)
 		.InSequence(s);
 
@@ -145,4 +145,9 @@ TEST(SessionBase, Close1) {
 
 	// waiting for all tasks to complete
 	processorServer.flush();
+
+	// testing if correct data was sent to the socket
+	ASSERT_EQ(socketRawPtr->sentMessages.size(), (unsigned int) 2);
+	ASSERT_EQ(socketRawPtr->sentMessages[0], CLI::Messages::logout);
+	ASSERT_EQ(socketRawPtr->sentMessages[1], CLI::Messages::endOfLine);
 }

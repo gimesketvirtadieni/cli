@@ -35,33 +35,15 @@ Socket::~Socket() {
 }
 
 
-void Socket::cancel() {
-
-	// saving socket object in local variable
-	auto socketPtr = nativeSocketPtr.get();
-
-	// detaching all weak pointers from the socket object
-	nativeSocketPtr.reset(
-		socketPtr,
-
-		// using empty deletor as socket object will be deleted by destructor
-		[](asio::ip::tcp::socket*) {}
-	);
-
-	LOG(DEBUG) << "CLI: Current socket operations were canceled";
-}
-
-
 void Socket::close() {
+	LOG(DEBUG) << "CLI: Closing socket (id=" << this << " opened=" << nativeSocketPtr->is_open() << ")...";
 
 	if (nativeSocketPtr->is_open()) {
-		LOG(DEBUG) << "CLI: Closing socket (id=" << this << ")...";
-
 		nativeSocketPtr->shutdown(asio::socket_base::shutdown_both);
 		nativeSocketPtr->close();
-
-		LOG(DEBUG) << "CLI: Socket was closed (id=" << this << ")";
 	}
+
+	LOG(DEBUG) << "CLI: Socket was closed (id=" << this << ")";
 }
 
 
@@ -99,27 +81,21 @@ void Socket::receive(char* data, const std::size_t size, std::function<void(cons
 
 
 void Socket::send(const char* string) {
-	send(nativeSocketPtr, string, strlen(string));
+	send(string, strlen(string));
 }
 
 
 void Socket::send(const char* data, const std::size_t size) {
-	send(nativeSocketPtr, data, size);
+
+	// writting to a socket
+	if (nativeSocketPtr->is_open()) {
+		nativeSocketPtr->send(asio::buffer(data, size));
+	}
 }
 
 
 void Socket::send(std::shared_ptr<std::string> stringPtr) {
-	send(nativeSocketPtr, stringPtr->c_str(), stringPtr->size());
-}
-
-
-void Socket::send(std::weak_ptr<asio::ip::tcp::socket> nativeSocketWeakPtr, const char* data, const std::size_t size) {
-
-	// writting to a socket
-	auto nativeSocketPtr = nativeSocketWeakPtr.lock();
-	if (nativeSocketPtr && nativeSocketPtr->is_open()) {
-		nativeSocketPtr->send(asio::buffer(data, size));
-	}
+	send(stringPtr->c_str(), stringPtr->size());
 }
 
 

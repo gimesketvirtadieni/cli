@@ -4,11 +4,15 @@
 
 namespace CLI {
 	namespace Messages {
+		const char* const endOfLine = "\n\r";
+
+		const char* const logout = "logout";
+
 		const char* const negotiateCommands =
-		"\xFF\xFB\x03"   // WILL SUPRESS GO AHEAD
-		"\xFF\xFB\x01"   // WILL ECHO
-		"\xFF\xFD\x03"   // DO SUPRESS GO AHEAD
-		"\xFF\xFD\x01";  // DO ECHO
+			"\xFF\xFB\x03"   // WILL SUPRESS GO AHEAD
+			"\xFF\xFB\x01"   // WILL ECHO
+			"\xFF\xFD\x03"   // DO SUPRESS GO AHEAD
+			"\xFF\xFD\x01";  // DO ECHO
 	};
 };
 

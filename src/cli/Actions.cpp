@@ -11,10 +11,12 @@
 
 
 Actions::Actions() {
+	LOG(DEBUG) << "CLI: Actions object was created (id=" << this << ")";
 }
 
 
 Actions::~Actions() {
+	LOG(DEBUG) << "CLI: Actions object was deleted (id=" << this << ")";
 }
 
 
@@ -74,6 +76,7 @@ void Actions::addAction(Action action) {
 
 
 void Actions::addDefaultCLIActions() {
+	LOG(DEBUG) << "CLI: Adding default CLI actions (id=" << this << ")...";
 
 	// defining 'cli list' action
 	std::function<void(Command*, std::shared_ptr<std::vector<std::string>>)> cliActionList = [this](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
@@ -89,6 +92,8 @@ void Actions::addDefaultCLIActions() {
 
 	// adding 'cli list' action
 	addAction({"cli", "list", cliActionList});
+
+	LOG(DEBUG) << "CLI: Default CLI actions were added (id=" << this << ")";
 }
 
 
