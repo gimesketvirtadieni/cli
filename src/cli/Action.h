@@ -7,10 +7,10 @@
 
 
 // forward declaration
-class Command;
+class Context;
 
 
-using ActionHandler = std::function<void (Command*, std::shared_ptr<std::vector<std::string>>)>;
+using ActionHandler = std::function<void(Context&)>;
 
 
 class Action {

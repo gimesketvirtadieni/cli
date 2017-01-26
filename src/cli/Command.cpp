@@ -10,20 +10,21 @@
 #include <iostream>
 
 
-Command::Command(Session* sessionPtr, std::shared_ptr<std::string> prefixPtr, std::shared_ptr<std::string> commandPtr, std::shared_ptr<std::string> suffixPtr, std::function<void (Command*)> handler, bool async) :
-	prefixPtr(prefixPtr),
-	commandPtr(commandPtr),
-	suffixPtr(suffixPtr),
-	handler(handler),
-	sessionPtr(sessionPtr),
-	async(async),
-	cancelHandler(0) {
-
+Command::Command(Session* sessionPtr, std::shared_ptr<std::string> prefixPtr, std::shared_ptr<std::string> commandPtr, std::shared_ptr<std::string> suffixPtr, std::function<void(Command*)> handler, bool async)
+	: prefixPtr(prefixPtr)
+	, commandPtr(commandPtr)
+	, suffixPtr(suffixPtr)
+	, handler([this, handler] {handler(this);})
+	, sessionPtr(sessionPtr)
+	, async(async)
+	, cancelHandler(0)
+{
 	LOG(DEBUG) << "CLI: Command object was created (id=" << this << ")";
 }
 
 
-Command::~Command() {
+Command::~Command()
+{
 	LOG(DEBUG) << "CLI: Command object was deleted (id=" << this << ")";
 }
 
@@ -36,7 +37,7 @@ std::unique_ptr<Command> Command::createCommand(Session* sessionPtr, const char*
     std::shared_ptr<std::string> prefixPtr;
     std::shared_ptr<std::string> commandPtr;
     std::shared_ptr<std::string> suffixPtr;
-    std::function<void (Command*)> handler        = nullptr;
+    std::function<void(Command*)> handler;
     std::unique_ptr<Command>     cliCommandPtr;
     bool                         async          = false;
 
@@ -133,7 +134,7 @@ std::unique_ptr<Command> Command::createTelnetCommand(Session* sessionPtr, const
     std::shared_ptr<std::string> prefixPtr;
     std::shared_ptr<std::string> commandPtr;
     std::shared_ptr<std::string> suffixPtr;
-    std::function<void (Command*)> handler       = nullptr;
+    std::function<void(Command*)> handler       = nullptr;
     std::unique_ptr<Command>     cliCommandPtr;
 
 	// telnet command must start with 255
@@ -171,7 +172,7 @@ std::unique_ptr<Command> Command::createTelnetCommand(Session* sessionPtr, const
 			found       = true;
 			commandSize = 2;
 			suffixSize  = dataSize - prefixSize - commandSize;
-			handler = &Command::handleNone;
+			handler     = &Command::handleNone;
 			break;
 		case 254:  // ???
 			found       = true;
@@ -226,7 +227,7 @@ std::unique_ptr<Command> Command::createTelnetCommand(Session* sessionPtr, const
 }
 
 
-std::function<void (Command*)> Command::getCancelHandler() {
+std::function<void()> Command::getCancelHandler() {
 	return cancelHandler;
 }
 
@@ -236,7 +237,7 @@ std::shared_ptr<std::string> Command::getCommand() {
 }
 
 
-std::function<void (Command*)> Command::getHandler() {
+std::function<void()> Command::getHandler() {
 	return handler;
 }
 
@@ -279,17 +280,18 @@ bool Command::isAsync() {
 
 
 void Command::handleAction() {
-	SocketBuffer buffer(sessionPtr->getSocket());
-	std::ostream out(&buffer);
 
-	out << "hello1";
+	auto parameters    = splitIntoWords(prefixPtr);
+	auto actionHandler = sessionPtr->getServer()->getActions()->findAction(parameters).getHandler();
+
+	// creating a context with all data needed for the action
+	Context context(this, parameters);
 
 	// echoing end-of-line back to the client before processing action
-	sessionPtr->getSocket()->send("\r\n");
+	context.getOutput() << cli::Messages::endOfLine;
 
 	// invoking command action handler
-	auto parameters = splitIntoWords(prefixPtr);
-	sessionPtr->getServer()->getActions()->findAction(parameters).getHandler()(this, parameters);
+	actionHandler(context);
 
 	// displaying prompt message
 	sessionPtr->sendPrompt(false);
@@ -333,7 +335,7 @@ void Command::handleNone() {
 }
 
 
-void Command::setCancelHandler(std::function<void (Command*)> cancelHandler) {
+void Command::setCancelHandler(std::function<void()> cancelHandler) {
 	this->cancelHandler = cancelHandler;
 }
 

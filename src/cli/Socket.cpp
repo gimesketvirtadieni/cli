@@ -36,14 +36,14 @@ Socket::~Socket() {
 
 
 void Socket::close() {
-	LOG(DEBUG) << "CLI: Closing socket (id=" << this << " opened=" << nativeSocketPtr->is_open() << ")...";
-
 	if (nativeSocketPtr->is_open()) {
+		LOG(DEBUG) << "CLI: Closing socket (id=" << this << ")...";
+
 		nativeSocketPtr->shutdown(asio::socket_base::shutdown_both);
 		nativeSocketPtr->close();
-	}
 
-	LOG(DEBUG) << "CLI: Socket was closed (id=" << this << ")";
+		LOG(DEBUG) << "CLI: Socket was closed (id=" << this << ")";
+	}
 }
 
 

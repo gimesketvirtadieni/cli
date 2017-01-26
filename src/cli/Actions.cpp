@@ -1,6 +1,6 @@
 #include <cli/Action.h>
 #include <cli/Actions.h>
-#include <cli/Command.h>
+#include <cli/Context.h>
 #include <cli/Session.h>
 #include <cli/Server.h>
 #include <cli/Socket.h>
@@ -20,11 +20,11 @@ Actions::~Actions() {
 }
 
 
-const char* usageString = "Usage: <category> <action> [options...]\n\rType 'help show' to display help message\n\r";
+const char* usageString = "Usage: <category> <action> [options...]\r\nType 'help show' to display help message\r\n";
 
 
 //auto helpActionVersion = [](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
-//	commandPtr->getSession()->getSocket()->send("Hello 1\n\r");
+//	commandPtr->getSession()->getSocket()->send("Hello 1\r\n");
 //};
 
 
@@ -79,13 +79,10 @@ void Actions::addDefaultCLIActions() {
 	LOG(DEBUG) << "CLI: Adding default CLI actions (id=" << this << ")...";
 
 	// defining 'cli list' action
-	std::function<void(Command*, std::shared_ptr<std::vector<std::string>>)> cliActionList = [this](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
+	std::function<void(Context&)> cliActionList = [this](auto& context) {
 		for (auto& category : categories) {
 			for (auto& action : category.second) {
-				commandPtr->getSession()->getSocket()->send(category.first.c_str());
-				commandPtr->getSession()->getSocket()->send(" ");
-				commandPtr->getSession()->getSocket()->send(action.first.c_str());
-				commandPtr->getSession()->getSocket()->send("\n\r");
+				context.getOutput() << category.first.c_str() << " " << action.first.c_str() << "\r\n";
 			}
 		}
 	};
@@ -100,11 +97,11 @@ void Actions::addDefaultCLIActions() {
 void Actions::addDefaultLogActions() {
 
 	// defining 'log show' action
-	auto logActionShow = [](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
+	auto logActionShow = [](auto& context) {
 		auto stopping = false;
 
 		// TODO: this is very dangerous, refactoring is required:
-		commandPtr->setCancelHandler([&](Command* commandPtr) {
+		context.setCancelHandler([&] {
 			stopping = true;
 		});
 
@@ -122,9 +119,9 @@ void Actions::addDefaultLogActions() {
 		};
 
 		// adding socket sink to the logger
-		auto socketSinkPtr = commandPtr->getSession()->getServer()->getLogger()->addSink(
+		auto socketSinkPtr = context.getLogger().addSink(
 			std2::make_unique<SocketSink>(
-				commandPtr->getSession()->getSocket(),
+				&context.getSocket(),
 				filter
 			),
 			&SocketSink::log
@@ -136,7 +133,7 @@ void Actions::addDefaultLogActions() {
 		}
 
 		// removing socket sink from the logger
-		commandPtr->getSession()->getServer()->getLogger()->removeSink(
+		context.getLogger().removeSink(
 			std::move(
 				socketSinkPtr
 			)
@@ -151,20 +148,16 @@ void Actions::addDefaultLogActions() {
 Action Actions::findAction(std::shared_ptr<std::vector<std::string>> actionTokensPtr) {
 
 	// defining default action which is an empty action
-	Action action = Action(
-		[](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {}
-	);
+	Action action = Action([](auto&) {});
 
 	if (actionTokensPtr->size() == 1) {
 
 		// error message action is returned if there are too few parameters
-		action = Action(
-			[](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
-				// TODO: correct message
-				commandPtr->getSession()->getSocket()->send("Invalid action command\n\r");
-				commandPtr->getSession()->getSocket()->send(usageString);
-			}
-		);
+		action = Action([](auto& context)
+		{
+			// TODO: correct message
+			context.getOutput() << "Invalid action command\r\n" << usageString;
+		});
 	} else if (actionTokensPtr->size() > 1) {
 
 		// seaching for action's category
@@ -173,9 +166,9 @@ Action Actions::findAction(std::shared_ptr<std::vector<std::string>> actionToken
 
 			// error message action is returned if no category was found
 			action = Action(
-				[](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
+				[](auto& context) {
 					// TODO: correct message
-					commandPtr->getSession()->getSocket()->send("Action category was not found\n\rType 'cli show...'\n\r");
+					context.getOutput() << "Action category was not found\r\nType 'cli show...'\r\n";
 				}
 			);
 		} else {
@@ -186,9 +179,9 @@ Action Actions::findAction(std::shared_ptr<std::vector<std::string>> actionToken
 
 				// error message action is returned if no action was found within this category
 				action = Action(
-					[](Command* commandPtr, std::shared_ptr<std::vector<std::string>>) {
+					[](auto& context) {
 						// TODO: correct message
-						commandPtr->getSession()->getSocket()->send("Action was not found within ... category\n\rType...\n\r");
+						context.getOutput() << "Action was not found within ... category\r\nType...\r\n";
 					}
 				);
 			} else {

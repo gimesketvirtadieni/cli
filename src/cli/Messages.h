@@ -2,12 +2,10 @@
 #define Messages_INCLUDED
 
 
-namespace CLI {
+namespace cli {
 	namespace Messages {
-		const char* const endOfLine = "\n\r";
-
-		const char* const logout = "logout";
-
+		const char* const endOfLine         = "\r\n";
+		const char* const logout            = "logout";
 		const char* const negotiateCommands =
 			"\xFF\xFB\x03"   // WILL SUPRESS GO AHEAD
 			"\xFF\xFB\x01"   // WILL ECHO

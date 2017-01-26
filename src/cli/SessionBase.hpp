@@ -3,6 +3,7 @@
 
 #include <asio.hpp>
 #include <cli/Command.h>
+#include <cli/Context.h>
 #include <cli/Messages.h>
 #include <cli/Server.h>
 #include <conwrap/ProcessorQueue.hpp>
@@ -35,8 +36,8 @@ class SessionBase {
 		inline void close(const std::error_code error = std::error_code())
 		{
 			// echoing logout message back to the client
-			getSocket()->send(CLI::Messages::logout);
-			getSocket()->send(CLI::Messages::endOfLine);
+			getSocket()->send(cli::Messages::logout);
+			getSocket()->send(cli::Messages::endOfLine);
 
 			// closing the socket; there is no need to invoke onClose here as it will be done by onOpen / onData methods
 			getSocket()->close();
@@ -75,15 +76,19 @@ class SessionBase {
 		void process(std::unique_ptr<Command> commandPtr) {
 
 			// defining command handler lambda
-			auto commandHandler = [this, commandPtr = commandPtr.get()] {
-				LOG(DEBUG) << "CLI: Starting command action (id=" << commandPtr << ", async=" << commandPtr->isAsync() << ", commands=" << commands.size() << ")...";
+			auto commandHandle = [this, commandPtr = commandPtr.get()] {
+				LOG(DEBUG) << "CLI: Starting command action (id=" << commandPtr << ", async=" << commandPtr->isAsync() << ")...";
 
 				// executing command action
 				if (auto handler = commandPtr->getHandler()) {
-					handler(commandPtr);
+					handler();
 				}
 
-				// removing Command from the vector
+				LOG(DEBUG) << "CLI: Command action completed (id=" << commandPtr << ")";
+			};
+
+			// defining lambda to delete command from the list
+			auto commandDelete = [this, commandPtr = commandPtr.get()] {
 				commands.erase(
 					std::remove_if(
 						commands.begin(),
@@ -94,15 +99,16 @@ class SessionBase {
 					),
 					commands.end()
 				);
-
-				LOG(DEBUG) << "CLI: Command action completed (id=" << commandPtr << ")";
+				LOG(DEBUG) << "CLI: Command was deleted from the list (id=" << commandPtr << ", commands=" << commands.size() << ")";
 			};
 
-			// keeping async flag locally
-			auto async = commandPtr->isAsync();
+			// keeping command id and async flag locally
+			auto commandRawPtr = commandPtr.get();
+			auto async         = commandPtr->isAsync();
 
 			// saving command in the vector so it can be canceled
 			commands.push_back(std::move(commandPtr));
+			LOG(DEBUG) << "CLI: Command was added to the list (id=" << commandRawPtr << ", commands=" << commands.size() << ")";
 
 			// if command is async then executing action on the session's thread
 			if (async) {
@@ -110,9 +116,15 @@ class SessionBase {
 				// setting a flag to be used by cancel handler
 				promptWasSent = false;
 
-				getProcessor()->process(commandHandler);
+				// processing command on the session's thread and deleteing from the vector on the server's thread
+				getProcessor()->process(commandHandle).then([this, commandDelete] {
+					serverPtr->getProcessorProxy()->process(commandDelete);
+				});
 			} else {
-				commandHandler();
+
+				// processing command and deleting it from the list synchroniously on the server's thread
+				commandHandle();
+				commandDelete();
 			}
 		}
 
@@ -121,7 +133,7 @@ class SessionBase {
 
 			if (!promptWasSent) {
 				if (sendEOL) {
-					getSocket()->send("\n\r");
+					getSocket()->send(cli::Messages::endOfLine);
 				}
 				getSocket()->send(getServer()->getPromptMessage());
 
@@ -144,21 +156,24 @@ class SessionBase {
 		    this->openCallback = openCallback;
 		}
 
-	    void setProcessor(conwrap::ProcessorQueue<SessionType>* p)
+
+		void setProcessor(conwrap::ProcessorQueue<SessionType>* p)
 	    {
 	    	processorPtr = p;
 	    }
+
 
 	protected:
 		virtual std::unique_ptr<Command> createCommand(const char*, std::size_t, std::size_t) = 0;
 
 
 		void negotiate() {
-			getSocket()->send(CLI::Messages::negotiateCommands);
+			getSocket()->send(cli::Messages::negotiateCommands);
 		}
 
 
 		void onCancel() {
+			LOG(DEBUG) << "CLI: Canceling session (id=" << this << ")";
 
 			// iterating through running commands
 			for(auto& commandPtr : commands) {
@@ -167,7 +182,8 @@ class SessionBase {
 				if (auto cancelHandler = commandPtr->getCancelHandler()) {
 					LOG(DEBUG) << "CLI: Canceling command (id=" << commandPtr.get() << ")...";
 
-					cancelHandler(commandPtr.get());
+					// invoking cancel handler
+					cancelHandler();
 
 					LOG(DEBUG) << "CLI: Command was canceled (id=" << commandPtr.get() << ")";
 				}
@@ -175,6 +191,8 @@ class SessionBase {
 
 			// waiting for any running action to complete
 			processorPtr->flush();
+
+			LOG(DEBUG) << "CLI: Session was canceled (id=" << this << ")";
 		}
 
 

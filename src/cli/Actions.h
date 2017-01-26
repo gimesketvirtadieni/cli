@@ -1,15 +1,11 @@
 #ifndef Actions_INCLUDED
 #define Actions_INCLUDED
 
+#include <cli/Action.h>
 #include <functional>
-#include <memory>
 #include <map>
+#include <memory>
 #include <vector>
-
-
-// forward declaration
-class Action;
-class Command;
 
 
 using ActionsMap    = std::map<std::string, Action>;
