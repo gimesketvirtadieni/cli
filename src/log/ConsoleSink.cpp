@@ -27,5 +27,6 @@ void ConsoleSink::print(g3::LogMessageMover logEntry) {
 				  << " (" << logMessage.file() << ":" << logMessage.line() << ") - "
 				  << rightTrim(logMessage.message())
 				  << std::endl << std::flush;
+				//<< (logMessage._labels.find("label1") != logMessage._labels.end() ? " yes" : " no");
 	}
 }

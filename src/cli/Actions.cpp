@@ -120,7 +120,7 @@ void Actions::addDefaultLogActions() {
 
 		// adding socket sink to the logger
 		auto socketSinkPtr = context.getLogger().addSink(
-			std2::make_unique<SocketSink>(
+			std::make_unique<SocketSink>(
 				&context.getSocket(),
 				filter
 			),
