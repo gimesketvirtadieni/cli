@@ -3,10 +3,7 @@
 #include <iostream>
 #include <log/FileSink.h>
 #include <log/log.h>
-
-// stream callbacks
-#include <iostream>     // std::cout, std::ios_base
-#include <fstream>      // ofstream
+#include <iostream>
 
 
 int main(int argc, char** argv) {
@@ -27,17 +24,6 @@ int main(int argc, char** argv) {
 	int return_value = RUN_ALL_TESTS();
 
 	std::cout << "Unit testing was finished" << std::endl;
-/*
-	{
-		MyBuf buff;
-		std::ostream out(&buff);
-		std::cout << "1\n\r";
-		out << "hello1";
-		out << std::flush;
-		std::cout << "2\n\r";
-		out << "hello2";
-	}
-	std::cout << "3\n\r";
-*/
+
 	return return_value;
 }

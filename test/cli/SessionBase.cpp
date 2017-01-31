@@ -94,7 +94,7 @@ TEST(SessionBase, Open1) {
 
 	// testing if correct data was sent to the socket
 	ASSERT_EQ(socketRawPtr->sentMessages.size(), (unsigned int) 2);
-	ASSERT_EQ(socketRawPtr->sentMessages[0], CLI::Messages::negotiateCommands);
+	ASSERT_EQ(socketRawPtr->sentMessages[0], cli::Messages::negotiateCommands);
 	ASSERT_EQ(socketRawPtr->sentMessages[1], *processorServer.getResource()->getPromptMessage());
 }
 
@@ -148,6 +148,6 @@ TEST(SessionBase, Close1) {
 
 	// testing if correct data was sent to the socket
 	ASSERT_EQ(socketRawPtr->sentMessages.size(), (unsigned int) 2);
-	ASSERT_EQ(socketRawPtr->sentMessages[0], CLI::Messages::logout);
-	ASSERT_EQ(socketRawPtr->sentMessages[1], CLI::Messages::endOfLine);
+	ASSERT_EQ(socketRawPtr->sentMessages[0], cli::Messages::logout);
+	ASSERT_EQ(socketRawPtr->sentMessages[1], cli::Messages::endOfLine);
 }
