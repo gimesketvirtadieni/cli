@@ -30,12 +30,11 @@ class Command {
 		static   std::unique_ptr<Command>     createTelnetCommand(Session*, const char*, std::size_t, std::size_t, std::size_t);
 
 	protected:
-		       void                                      handleAction();
-		       void                                      handleCancel();
-		       void                                      handleClose();
-		       void                                      handleInvalid();
-		       void                                      handleNone();
-		static std::shared_ptr<std::vector<std::string>> splitIntoWords(std::shared_ptr<std::string>);
+		void handleAction();
+		void handleCancel();
+		void handleClose();
+		void handleInvalid();
+		void handleNone();
 
 	private:
         Session*                     sessionPtr;

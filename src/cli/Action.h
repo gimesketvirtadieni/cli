@@ -1,32 +1,26 @@
 #ifndef Action_INCLUDED
 #define Action_INCLUDED
 
+#include <cli/Context.h>
 #include <functional>
-#include <memory>
-#include <vector>
+#include <string>
 
 
-// forward declaration
-class Context;
-
-
-using ActionHandler = std::function<void(Context&)>;
-
-
-class Action {
+class Action
+{
 	public:
-		                             Action(ActionHandler);
-		                             Action(const Action&) = default;
-		                             Action(const char*, const char*, ActionHandler);
-		                             Action(std::shared_ptr<std::string>, std::shared_ptr<std::string>, ActionHandler);
-		std::shared_ptr<std::string> getActionName();
-		std::shared_ptr<std::string> getCategoryName();
-		ActionHandler                getHandler();
+		                                      Action(std::string, std::string);
+		                                      Action(std::string, std::string, std::function<void(Context&)>);
+		virtual void                          operator()(Context&);
+		virtual std::string                   getCategoryName();
+		virtual std::function<void(Context&)> getHandler();
+		virtual std::string                   getName();
+		virtual void                          main(Context&);
 
 	private:
-		std::shared_ptr<std::string> actionNamePtr;
-		std::shared_ptr<std::string> categoryNamePtr;
-		ActionHandler                actionHandler;
+		std::string                   actionName;
+		std::string                   categoryName;
+		std::function<void(Context&)> actionHandler;
 };
 
 #endif // Action_INCLUDED

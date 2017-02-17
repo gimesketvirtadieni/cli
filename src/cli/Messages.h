@@ -1,6 +1,9 @@
 #ifndef Messages_INCLUDED
 #define Messages_INCLUDED
 
+#include <string>
+#include <vector>
+
 
 namespace cli {
 	namespace Messages {
@@ -12,6 +15,9 @@ namespace cli {
 			"\xFF\xFD\x03"   // DO SUPRESS GO AHEAD
 			"\xFF\xFD\x01";  // DO ECHO
 	};
+
+	std::vector<std::string> splitIntoWords(const std::string& string, const char separator);
+	std::vector<std::string> splitIntoWords(std::string& string, std::string& separators);
 };
 
 #endif // Messages_INCLUDED

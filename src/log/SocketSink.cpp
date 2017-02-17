@@ -9,12 +9,12 @@ SocketSink::SocketSink(Socket* socketPtr, std::function<bool(g3::LogMessage&)> f
 	socketPtr(socketPtr),
 	SinkFilter(filter) {
 
-	LOG(DEBUG) << "CLI: SocketSink object was created (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "SocketSink object was created (id=" << this << ")";
 }
 
 
 SocketSink::~SocketSink() {
-	LOG(DEBUG) << "CLI: SocketSink object was deleted (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "SocketSink object was deleted (id=" << this << ")";
 }
 
 
@@ -25,7 +25,7 @@ void SocketSink::log(g3::LogMessageMover logEntry) {
 
 		// creating message string
 		std::string logString(
-			logMessage.timestamp() + " " +
+			logMessage.timestamp("%Y/%m/%d %H:%M:%S.%f3") + " " +
 			logMessage.level() +
 			" [" + logMessage.threadID() + "]" +
 			" (" + logMessage.file() + ":" + logMessage.line() + ") - " +

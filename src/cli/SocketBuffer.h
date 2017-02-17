@@ -6,11 +6,14 @@
 #include <utility>
 
 
+// forward declaration
+class Socket;
+
+
 class SocketBuffer : public std::streambuf
 {
 	public:
 		            SocketBuffer(Socket*);
-		            SocketBuffer(SocketBuffer&&);
 		virtual    ~SocketBuffer();
 		virtual int overflow(int c);
 		virtual int sync();

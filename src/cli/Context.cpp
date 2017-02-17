@@ -5,29 +5,19 @@
 #include <log/log.h>
 
 
-Context::Context(Command* c)
-	: Context(c, std::shared_ptr<std::vector<std::string>>())
-{
-	LOG(DEBUG) << "CLI: Context object was created (id=" << this << ")";
-}
-
-
-Context::Context(Command* c, std::shared_ptr<std::vector<std::string>> p)
+Context::Context(Command* c, std::vector<std::string> p)
 	: commandPtr(c)
 	, buffer(c->getSession()->getSocket())
 	, output(&buffer)
 	, parameters(p)
 {
-	// TODO: validate
-	if (!parameters)
-	{
-		LOG(DEBUG) << "CLI: Context (!parameters)==true (id=" << this << ")";
-		parameters = std::make_shared<std::vector<std::string>>();
-	} else {
-		LOG(DEBUG) << "CLI: Context (!parameters)==false (id=" << this << ")";
-	}
+	LOG(DEBUG) << g3::Labels{"cli"} << "Context object was created (id=" << this << ")";
+}
 
-	LOG(DEBUG) << "CLI: Context object was deleted (id=" << this << ")";
+
+Context::~Context()
+{
+	LOG(DEBUG) << g3::Labels{"cli"} << "Context object was deleted (id=" << this << ")";
 }
 
 
@@ -40,6 +30,12 @@ g3::LogWorker& Context::getLogger()
 std::ostream& Context::getOutput()
 {
 	return output;
+}
+
+
+std::vector<std::string>& Context::getParameters()
+{
+	return parameters;
 }
 
 

@@ -5,14 +5,6 @@
 SocketBuffer::SocketBuffer(Socket* s) : socketPtr(s) {}
 
 
-SocketBuffer::SocketBuffer(SocketBuffer&& other)
-{
-	// TODO: copy & swap should be used
-	buffer    = std::move(other.buffer);
-	socketPtr = other.socketPtr;
-}
-
-
 SocketBuffer::~SocketBuffer()
 {
 	sync();

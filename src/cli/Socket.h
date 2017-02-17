@@ -3,7 +3,6 @@
 
 #include <asio.hpp>
 #include <functional>
-#include <memory>
 
 
 // forward declaration
@@ -12,7 +11,7 @@ class Session;
 
 class Socket {
 	public:
-		         Socket(Session*, asio::io_service*);
+		         Socket(Session*, asio::io_service&);
 		        ~Socket();
 		void     close();
 		Session* getSession();
@@ -21,11 +20,10 @@ class Socket {
 		void     send(const char*);
 		void     send(const char*, const std::size_t);
 		void     send(const std::shared_ptr<std::string>);
-		void     sendEndOfLine();
 
 	private:
-		Session*                               sessionPtr;
-		std::shared_ptr<asio::ip::tcp::socket> nativeSocketPtr;
+		Session*              sessionPtr;
+		asio::ip::tcp::socket nativeSocket;
 };
 
 #endif // Socket_INCLUDED

@@ -1,6 +1,7 @@
 #include <cli/Action.h>
 #include <cli/Actions.h>
 #include <cli/Command.h>
+#include <cli/Messages.h>
 #include <cli/Server.h>
 #include <cli/Session.h>
 #include <cli/Socket.h>
@@ -19,13 +20,13 @@ Command::Command(Session* sessionPtr, std::shared_ptr<std::string> prefixPtr, st
 	, async(async)
 	, cancelHandler(0)
 {
-	LOG(DEBUG) << "CLI: Command object was created (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "Command object was created (id=" << this << ")";
 }
 
 
 Command::~Command()
 {
-	LOG(DEBUG) << "CLI: Command object was deleted (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "Command object was deleted (id=" << this << ")";
 }
 
 
@@ -280,26 +281,30 @@ bool Command::isAsync() {
 
 
 void Command::handleAction() {
+	bool        endl{true};
+	std::string separators{" \t"};
+	auto        parameters = cli::splitIntoWords(*prefixPtr, separators);
 
-	auto parameters    = splitIntoWords(prefixPtr);
-	auto actionHandler = sessionPtr->getServer()->getActions()->findAction(parameters).getHandler();
+	if (parameters.size() > 0) {
+		endl = false;
 
-	// creating a context with all data needed for the action
-	Context context(this, parameters);
+		// creating a context with all data needed for the action
+		Context context(this, parameters);
 
-	// echoing end-of-line back to the client before processing action
-	context.getOutput() << cli::Messages::endOfLine;
+		// echoing end-of-line back to the client before processing action
+		context.getOutput() << cli::Messages::endOfLine;
 
-	// invoking command action handler
-	actionHandler(context);
+		// invoking command action handler
+		sessionPtr->getServer()->getActions()->findAction(parameters)(context);
+	}
 
 	// displaying prompt message
-	sessionPtr->sendPrompt(false);
+	sessionPtr->sendPrompt(endl);
 }
 
 
 void Command::handleCancel() {
-	LOG(DEBUG) << "CLI: Command::handleCancel begin (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleCancel begin (id=" << this << ")";
 
 	// echoing Control-C sign back to the client
 	sessionPtr->getSocket()->send("^C");
@@ -310,16 +315,16 @@ void Command::handleCancel() {
 	// displaying end-of-line and prompt message
 	sessionPtr->sendPrompt(true);
 
-	LOG(DEBUG) << "CLI: Command::handleCancel end (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleCancel end (id=" << this << ")";
 }
 
 
 void Command::handleClose() {
-	LOG(DEBUG) << "CLI: Command::handleClose begin (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleClose begin (id=" << this << ")";
 
 	sessionPtr->close();
 
-	LOG(DEBUG) << "CLI: Command::handleClose end (id=" << this << ")";
+	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleClose end (id=" << this << ")";
 }
 
 
@@ -337,30 +342,4 @@ void Command::handleNone() {
 
 void Command::setCancelHandler(std::function<void()> cancelHandler) {
 	this->cancelHandler = cancelHandler;
-}
-
-
-std::shared_ptr<std::vector<std::string>> Command::splitIntoWords(std::shared_ptr<std::string> stringPtr) {
-	std::stringstream stringStream1(*stringPtr.get());
-	std::stringstream stringStream2;
-	const char        delimeter1 = ' ';
-	const char        delimeter2 = '\t';
-	std::string       word1;
-	std::string       word2;
-	auto              wordsPtr = std::make_shared<std::vector<std::string>>();
-
-	while (std::getline(stringStream1, word1, delimeter1)) {
-
-		// reseting the second string stream
-		stringStream2.str(word1);
-		stringStream2.clear();
-
-		while (std::getline(stringStream2, word2, delimeter2)) {
-			if (!word2.empty()) {
-				wordsPtr->push_back(word2);
-			}
-		}
-	}
-
-	return wordsPtr;
 }
