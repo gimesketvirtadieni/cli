@@ -20,13 +20,13 @@ Command::Command(Session* sessionPtr, std::shared_ptr<std::string> prefixPtr, st
 	, async(async)
 	, cancelHandler(0)
 {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Command object was created (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command object was created (id=" << this << ")";
 }
 
 
 Command::~Command()
 {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Command object was deleted (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command object was deleted (id=" << this << ")";
 }
 
 
@@ -304,7 +304,7 @@ void Command::handleAction() {
 
 
 void Command::handleCancel() {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleCancel begin (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleCancel begin (id=" << this << ")";
 
 	// echoing Control-C sign back to the client
 	sessionPtr->getSocket()->send("^C");
@@ -315,16 +315,16 @@ void Command::handleCancel() {
 	// displaying end-of-line and prompt message
 	sessionPtr->sendPrompt(true);
 
-	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleCancel end (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleCancel end (id=" << this << ")";
 }
 
 
 void Command::handleClose() {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleClose begin (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleClose begin (id=" << this << ")";
 
 	sessionPtr->close();
 
-	LOG(DEBUG) << g3::Labels{"cli"} << "Command::handleClose end (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleClose end (id=" << this << ")";
 }
 
 

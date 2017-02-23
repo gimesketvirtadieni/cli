@@ -77,14 +77,14 @@ class SessionBase {
 
 			// defining command handler lambda
 			auto commandHandle = [this, commandPtr = commandPtr.get()] {
-				LOG(DEBUG) << g3::Labels{"cli"} << "Starting command action (id=" << commandPtr << ", async=" << commandPtr->isAsync() << ")...";
+				LOG(DEBUG) << LABELS{"cli"} << "Starting command action (id=" << commandPtr << ", async=" << commandPtr->isAsync() << ")...";
 
 				// executing command action
 				if (auto handler = commandPtr->getHandler()) {
 					handler();
 				}
 
-				LOG(DEBUG) << g3::Labels{"cli"} << "Command action completed (id=" << commandPtr << ")";
+				LOG(DEBUG) << LABELS{"cli"} << "Command action completed (id=" << commandPtr << ")";
 			};
 
 			// defining lambda to delete command from the list
@@ -99,7 +99,7 @@ class SessionBase {
 					),
 					commands.end()
 				);
-				LOG(DEBUG) << g3::Labels{"cli"} << "Command was deleted from the list (id=" << commandPtr << ", commands=" << commands.size() << ")";
+				LOG(DEBUG) << LABELS{"cli"} << "Command was deleted from the list (id=" << commandPtr << ", commands=" << commands.size() << ")";
 			};
 
 			// keeping command id and async flag locally
@@ -108,7 +108,7 @@ class SessionBase {
 
 			// saving command in the vector so it can be canceled
 			commands.push_back(std::move(commandPtr));
-			LOG(DEBUG) << g3::Labels{"cli"} << "Command was added to the list (id=" << commandRawPtr << ", commands=" << commands.size() << ")";
+			LOG(DEBUG) << LABELS{"cli"} << "Command was added to the list (id=" << commandRawPtr << ", commands=" << commands.size() << ")";
 
 			// if command is async then executing action on the session's thread
 			if (async) {
@@ -173,31 +173,31 @@ class SessionBase {
 
 
 		void onCancel() {
-			LOG(DEBUG) << g3::Labels{"cli"} << "Canceling session (id=" << this << ")";
+			LOG(DEBUG) << LABELS{"cli"} << "Canceling session (id=" << this << ")";
 
 			// iterating through running commands
 			for(auto& commandPtr : commands) {
 
 				// obtaining and evaluating cancel handler
 				if (auto cancelHandler = commandPtr->getCancelHandler()) {
-					LOG(DEBUG) << g3::Labels{"cli"} << "Canceling command (id=" << commandPtr.get() << ")...";
+					LOG(DEBUG) << LABELS{"cli"} << "Canceling command (id=" << commandPtr.get() << ")...";
 
 					// invoking cancel handler
 					cancelHandler();
 
-					LOG(DEBUG) << g3::Labels{"cli"} << "Command was canceled (id=" << commandPtr.get() << ")";
+					LOG(DEBUG) << LABELS{"cli"} << "Command was canceled (id=" << commandPtr.get() << ")";
 				}
 			}
 
 			// waiting for any running action to complete
 			processorPtr->flush();
 
-			LOG(DEBUG) << g3::Labels{"cli"} << "Session was canceled (id=" << this << ")";
+			LOG(DEBUG) << LABELS{"cli"} << "Session was canceled (id=" << this << ")";
 		}
 
 
 		void onClose(const std::error_code error) {
-			LOG(DEBUG) << g3::Labels{"cli"} << "Closing session (id=" << this << ", error='" << error.message() << "')...";
+			LOG(DEBUG) << LABELS{"cli"} << "Closing session (id=" << this << ", error='" << error.message() << "')...";
 
 			// canceling any actions run by this session
 			cancel();
@@ -207,7 +207,7 @@ class SessionBase {
 				closeCallback(processorPtr->getResource(), error);
 		    }
 
-			LOG(DEBUG) << g3::Labels{"cli"} << "Session was closed (id=" << this << ")";
+			LOG(DEBUG) << LABELS{"cli"} << "Session was closed (id=" << this << ")";
 		}
 
 
@@ -286,7 +286,7 @@ class SessionBase {
 			if (error) {
 				onClose(error);
 			} else {
-				LOG(DEBUG) << g3::Labels{"cli"} << "Opening session (id=" << this << ")...";
+				LOG(DEBUG) << LABELS{"cli"} << "Opening session (id=" << this << ")...";
 
 				// invoking open callback
 				if (openCallback) {
@@ -302,7 +302,7 @@ class SessionBase {
 				// start receiving data
 				onData(error, 0);
 
-				LOG(DEBUG) << g3::Labels{"cli"} << "Session was opened (id=" << this << ")";
+				LOG(DEBUG) << LABELS{"cli"} << "Session was opened (id=" << this << ")";
 		    }
 		}
 

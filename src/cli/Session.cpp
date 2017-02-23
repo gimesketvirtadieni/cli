@@ -7,12 +7,12 @@
 
 Session::Session(Server* serverPtr) :
 	SessionBase(serverPtr, std::move(std::make_unique<Socket>(this, *serverPtr->getProcessorProxy()->getDispatcher()))) {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Session object was created (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Session object was created (id=" << this << ")";
 }
 
 
 Session::~Session() {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Session object was deleted (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Session object was deleted (id=" << this << ")";
 }
 
 

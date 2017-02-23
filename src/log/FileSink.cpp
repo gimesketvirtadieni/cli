@@ -62,8 +62,9 @@ void FileSink::save(g3::LogMessageMover logEntry) {
 		out << logMessage.timestamp() << " "
 			<< logMessage.level()
 			<< " [" << logMessage.threadID() << "]"
-			<< " (" << logMessage.file() << ":" << logMessage.line() << ") - "
-			<< rightTrim(logMessage.message())
+			<< " (" << logMessage.file() << ":" << logMessage.line() << ")"
+			<< (logMessage._labels.size() > 0 ? " {" + logMessage.labels() + "}" : "")
+			<< " - " << rightTrim(logMessage.message())
 			<< std::endl << std::flush;
 	}
 }

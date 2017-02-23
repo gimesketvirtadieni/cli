@@ -6,12 +6,12 @@
 
 
 Actions::Actions() {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Actions object was created (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Actions object was created (id=" << this << ")";
 }
 
 
 Actions::~Actions() {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Actions object was deleted (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Actions object was deleted (id=" << this << ")";
 }
 
 
@@ -60,7 +60,7 @@ void Actions::addAction(std::string categoryName, std::string actionName, std::f
 
 
 void Actions::addDefaultCLIActions() {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Adding default CLI actions (id=" << this << ")...";
+	LOG(DEBUG) << LABELS{"cli"} << "Adding default CLI actions (id=" << this << ")...";
 
 	// defining 'cli list' action
 	std::function<void(Context&)> cliActionList = [this](auto& context) {
@@ -74,7 +74,7 @@ void Actions::addDefaultCLIActions() {
 	// adding 'cli list' action
 	addAction({"cli"}, {"list"}, cliActionList);
 
-	LOG(DEBUG) << g3::Labels{"cli"} << "Default CLI actions were added (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Default CLI actions were added (id=" << this << ")";
 }
 
 

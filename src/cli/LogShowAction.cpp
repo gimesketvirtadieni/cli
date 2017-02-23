@@ -11,7 +11,7 @@ LogShowAction::LogShowAction()
 	: Action("log", "show") {}
 
 
-bool LogShowAction::containsAny(g3::Labels a, std::vector<std::string> b)
+bool LogShowAction::containsAny(LABELS& a, std::vector<std::string>& b)
 {
 	bool found = false;
 
@@ -60,7 +60,7 @@ void LogShowAction::main(Context& context)
 		auto filter = false;
 
 		// filtering out one noicy line
-		if (logMessage._level == DEBUG && !logMessage._file.compare("alsaPlayer.cpp") && logMessage._line == 243)
+		if (logMessage._level == DEBUG && !logMessage._file.compare("alsaPlayer.cpp") && logMessage._line == 245)
 		{
 			filter = true;
 		}

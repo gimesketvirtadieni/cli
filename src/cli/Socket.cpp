@@ -8,7 +8,7 @@ Socket::Socket(Session* sessionPtr, asio::io_service& dispatcher)
 	: sessionPtr(sessionPtr)
 	, nativeSocket(dispatcher) {
 
-	LOG(DEBUG) << g3::Labels{"cli"} << "Socket object was created (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Socket object was created (id=" << this << ")";
 }
 
 
@@ -17,18 +17,18 @@ Socket::~Socket() {
 	// closing the socket
 	close();
 
-	LOG(DEBUG) << g3::Labels{"cli"} << "Socket object was deleted (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Socket object was deleted (id=" << this << ")";
 }
 
 
 void Socket::close() {
 	if (nativeSocket.is_open()) {
-		LOG(DEBUG) << g3::Labels{"cli"} << "Closing socket (id=" << this << ")...";
+		LOG(DEBUG) << LABELS{"cli"} << "Closing socket (id=" << this << ")...";
 
 		nativeSocket.shutdown(asio::socket_base::shutdown_both);
 		nativeSocket.close();
 
-		LOG(DEBUG) << g3::Labels{"cli"} << "Socket was closed (id=" << this << ")";
+		LOG(DEBUG) << LABELS{"cli"} << "Socket was closed (id=" << this << ")";
 	}
 }
 
@@ -41,7 +41,7 @@ Session* Socket::getSession() {
 void Socket::open(std::function<void(const std::error_code&)> callback) {
 	auto acceptorPtr  = sessionPtr->getServer()->getAcceptor();
 	if (acceptorPtr) {
-		LOG(DEBUG) << g3::Labels{"cli"} << "Opening socket (id=" << this << ")...";
+		LOG(DEBUG) << LABELS{"cli"} << "Opening socket (id=" << this << ")...";
 
 		// registering callback on open event
 		acceptorPtr->async_accept(
@@ -49,9 +49,9 @@ void Socket::open(std::function<void(const std::error_code&)> callback) {
 			callback
 		);
 
-		LOG(DEBUG) << g3::Labels{"cli"} << "Socket was opened for incoming requests (id=" << this << ")";
+		LOG(DEBUG) << LABELS{"cli"} << "Socket was opened for incoming requests (id=" << this << ")";
 	} else {
-		LOG(DEBUG) << g3::Labels{"cli"} << "Could not open socket due to unset acceptor (id=" << this << ")";
+		LOG(DEBUG) << LABELS{"cli"} << "Could not open socket due to unset acceptor (id=" << this << ")";
 	}
 }
 

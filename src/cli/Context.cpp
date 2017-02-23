@@ -11,13 +11,13 @@ Context::Context(Command* c, std::vector<std::string> p)
 	, output(&buffer)
 	, parameters(p)
 {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Context object was created (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Context object was created (id=" << this << ")";
 }
 
 
 Context::~Context()
 {
-	LOG(DEBUG) << g3::Labels{"cli"} << "Context object was deleted (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Context object was deleted (id=" << this << ")";
 }
 
 

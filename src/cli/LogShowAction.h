@@ -15,7 +15,7 @@ class LogShowAction : public Action
 		virtual void main(Context&) override;
 
 	protected:
-		static bool containsAny(g3::Labels, std::vector<std::string>);
+		static bool containsAny(LABELS&, std::vector<std::string>&);
 };
 
 #endif // LogShowAction_INCLUDED
