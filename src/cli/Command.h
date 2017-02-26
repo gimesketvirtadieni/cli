@@ -44,6 +44,27 @@ class Command {
 		bool                         async;
 		std::function<void()>        handler;
         std::function<void()>        cancelHandler;
+
+	public:
+        class Builder
+		{
+			public:
+				explicit                 Builder(Session*);
+				std::unique_ptr<Command> build();
+				Builder&                 setAsync(bool);
+				Builder&                 setCommand(std::string);
+				Builder&                 setHandler(std::function<void(Command*)>);
+				Builder&                 setPrefix(std::string);
+				Builder&                 setSuffix(std::string);
+
+			private:
+		        Session*                      sessionPtr;
+				std::function<void(Command*)> handler;
+				bool                          async;
+				std::string                   prefix;
+				std::string                   command;
+				std::string                   suffix;
+		};
 };
 
 #endif // Command_INCLUDED

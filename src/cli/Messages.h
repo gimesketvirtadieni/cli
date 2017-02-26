@@ -16,8 +16,11 @@ namespace cli {
 			"\xFF\xFD\x01";  // DO ECHO
 	};
 
+	std::string              leftTrim(const std::string& s);
+	std::string              rightTrim(const std::string& s);
 	std::vector<std::string> splitIntoWords(const std::string& string, const char separator);
 	std::vector<std::string> splitIntoWords(std::string& string, std::string& separators);
+	std::string              trim(const std::string& s);
 };
 
 #endif // Messages_INCLUDED

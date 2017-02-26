@@ -3,6 +3,7 @@
 #include <cli/Session.h>
 #include <cli/Socket.h>
 #include <log/log.h>
+#include <utility>
 
 
 Context::Context(Command* c, std::vector<std::string> p)
@@ -18,6 +19,12 @@ Context::Context(Command* c, std::vector<std::string> p)
 Context::~Context()
 {
 	LOG(DEBUG) << LABELS{"cli"} << "Context object was deleted (id=" << this << ")";
+}
+
+
+Actions& Context::getActions()
+{
+	return *commandPtr->getSession()->getServer()->getActions();
 }
 
 

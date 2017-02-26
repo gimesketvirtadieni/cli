@@ -1,5 +1,5 @@
-#ifndef LogShowAction_INCLUDED
-#define LogShowAction_INCLUDED
+#ifndef ActionLogShow_INCLUDED
+#define ActionLogShow_INCLUDED
 
 #include <cli/Action.h>
 #include <cli/Context.h>
@@ -8,14 +8,14 @@
 #include <vector>
 
 
-class LogShowAction : public Action
+class ActionLogShow : public Action
 {
 	public:
-		             LogShowAction();
+		             ActionLogShow();
 		virtual void main(Context&) override;
 
 	protected:
 		static bool containsAny(LABELS&, std::vector<std::string>&);
 };
 
-#endif // LogShowAction_INCLUDED
+#endif // ActionLogShow_INCLUDED

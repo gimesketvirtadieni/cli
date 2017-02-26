@@ -9,18 +9,22 @@
 #include <vector>
 
 
+class ActionCLIList;
+
+
 using ActionsMap    = std::map<std::string, std::function<void(Context&)>>;
 using CategoriesMap = std::map<std::string, ActionsMap>;
 
 
 class Actions {
+	friend ActionCLIList;
+
 	public:
 		                              Actions();
-	                                 ~Actions();
-		void                          addAction(std::string, std::string, std::function<void(Context&)>);
+	    virtual                      ~Actions();
 		void                          addDefaultCLIActions();
 		void                          addDefaultLogActions();
-		std::function<void(Context&)> findAction(std::vector<std::string>);
+		std::function<void(Context&)> findAction(const std::vector<std::string>&);
 		template<class T>
 		void addAction(T action)
 		{
@@ -30,6 +34,10 @@ class Actions {
 			// ...
 			addAction(action.getCategoryName(), action.getName(), action);
 		}
+
+	protected:
+		void           addAction(const std::string&, const std::string&, const std::function<void(Context&)>&);
+		CategoriesMap& getCategories();
 
 	private:
 		CategoriesMap categories;

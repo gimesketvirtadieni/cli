@@ -9,18 +9,19 @@
 class Action
 {
 	public:
-		                                      Action(std::string, std::string);
-		                                      Action(std::string, std::string, std::function<void(Context&)>);
-		virtual void                          operator()(Context&);
-		virtual std::string                   getCategoryName();
-		virtual std::function<void(Context&)> getHandler();
-		virtual std::string                   getName();
-		virtual void                          main(Context&);
+		                                             Action(std::string, std::string);
+		                                             Action(std::string, std::string, std::function<void(Context&)>);
+		virtual                                     ~Action();
+		virtual       void                           operator()(Context&);
+		virtual const std::string&                   getCategoryName();
+		virtual const std::function<void(Context&)>& getHandler();
+		virtual const std::string&                   getName();
+		virtual       void                           main(Context&);
 
 	private:
-		std::string                   actionName;
-		std::string                   categoryName;
-		std::function<void(Context&)> actionHandler;
+		const std::string                   actionName;
+		const std::string                   categoryName;
+		const std::function<void(Context&)> actionHandler;
 };
 
 #endif // Action_INCLUDED

@@ -31,54 +31,48 @@ Command::~Command()
 
 
 std::unique_ptr<Command> Command::createCommand(Session* sessionPtr, const char* buffer, std::size_t bufferSize, std::size_t dataSize) {
-	bool                         found          = false;
-	std::size_t                  prefixSize     = 0;
-	std::size_t                  commandSize    = 0;
-	std::size_t                  suffixSize     = 0;
-    std::shared_ptr<std::string> prefixPtr;
-    std::shared_ptr<std::string> commandPtr;
-    std::shared_ptr<std::string> suffixPtr;
-    std::function<void(Command*)> handler;
-    std::unique_ptr<Command>     cliCommandPtr;
-    bool                         async          = false;
+	auto                     found          = false;
+    auto                     commandBuilder = Command::Builder(sessionPtr).setAsync(false);
+    std::size_t              prefixSize     = 0;
+	std::size_t              commandSize    = 0;
+	std::size_t              suffixSize     = 0;
+    std::unique_ptr<Command> commandPtr;
 
-	std::cout << "Command::createCommand begin ";
-	for (std::size_t j = 0; j < dataSize; j++) {
-		std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
-	}
-	std::cout << std::endl << std::flush;
+	//for (std::size_t j = 0; j < dataSize; j++) {
+	//	std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
+	//}
 
-	for (std::size_t i = 0; i < dataSize && !found; i++) {
+    for (std::size_t i = 0; i < dataSize && !found; i++) {
 		switch ((unsigned char)buffer[i]) {
 			case 0:
-				found       = true;
-				commandSize = 1;
-				handler     = &Command::handleNone;
+				found          = true;
+				commandSize    = 1;
+				commandBuilder = commandBuilder.setHandler(&Command::handleNone);
 				break;
 			case 3:
-				found       = true;
-				commandSize = 1;
-				handler     = &Command::handleCancel;
+				found          = true;
+				commandSize    = 1;
+				commandBuilder = commandBuilder.setHandler(&Command::handleCancel);
 				break;
 			case 4:
-				found       = true;
-				commandSize = 1;
-				handler     = &Command::handleClose;
+				found          = true;
+				commandSize    = 1;
+				commandBuilder = commandBuilder.setHandler(&Command::handleClose);
 				break;
 			case 10:
-				found       = true;
-				commandSize = 1;
-				handler     = &Command::handleNone;
+				found          = true;
+				commandSize    = 1;
+				commandBuilder = commandBuilder.setHandler(&Command::handleNone);
 				break;
 			case 13:
-				found       = true;
-				commandSize = 1;
-				handler     = &Command::handleAction;
-				async       = true;
+				found          = true;
+				commandSize    = 1;
+				commandBuilder = commandBuilder.setHandler(&Command::handleAction);
+				commandBuilder = commandBuilder.setAsync(true);
 				break;
 			case 255:
-				cliCommandPtr = createTelnetCommand(sessionPtr, buffer, bufferSize, dataSize, i);
-				found         = cliCommandPtr.get();
+				commandPtr = createTelnetCommand(sessionPtr, buffer, bufferSize, dataSize, i);
+				found      = commandPtr.get();
 				break;
 		}
 
@@ -89,54 +83,46 @@ std::unique_ptr<Command> Command::createCommand(Session* sessionPtr, const char*
 	}
 
 	// creating command object if needed
-	if (found && !cliCommandPtr.get()) {
+	if (found && !commandPtr.get()) {
 
-		std::cout << "prefix: " << std::flush;
-		for (std::size_t j = 0; j < prefixSize; j++) {
-			std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
-		}
-		std::cout << std::endl << std::flush;
-		std::cout << "command: " << std::flush;
-		for (std::size_t j = prefixSize; j < prefixSize + commandSize; j++) {
-			std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
-		}
-		std::cout << std::endl << std::flush;
-		std::cout << "suffix: " << std::flush;
-		for (std::size_t j = prefixSize + commandSize; j < prefixSize + commandSize + suffixSize; j++) {
-			std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
-		}
-		std::cout << std::endl << std::flush;
+		//std::cout << "prefix: " << std::flush;
+		//for (std::size_t j = 0; j < prefixSize; j++) {
+		//	std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
+		//}
+		//std::cout << std::endl << std::flush;
+		//std::cout << "command: " << std::flush;
+		//for (std::size_t j = prefixSize; j < prefixSize + commandSize; j++) {
+		//	std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
+		//}
+		//std::cout << std::endl << std::flush;
+		//std::cout << "suffix: " << std::flush;
+		//for (std::size_t j = prefixSize + commandSize; j < prefixSize + commandSize + suffixSize; j++) {
+		//	std::cout << ((unsigned int)((unsigned char)buffer[j])) << " " << std::flush;
+		//}
+		//std::cout << std::endl << std::flush;
 
 		// creating prefix, command and suffix string object
-		prefixPtr  = std::make_shared<std::string>(buffer, prefixSize);
-		commandPtr = std::make_shared<std::string>(buffer + prefixSize, commandSize);
-		suffixPtr  = std::make_shared<std::string>(buffer + prefixSize + commandSize, suffixSize);
+		commandBuilder.setPrefix(std::string(buffer, prefixSize));
+		commandBuilder.setCommand(std::string(buffer + prefixSize, commandSize));
+		commandBuilder.setSuffix(std::string(buffer + prefixSize + commandSize, suffixSize));
 
 		// creating CLI command object
-		cliCommandPtr = std::make_unique<Command>(
-			sessionPtr,
-			prefixPtr,
-			commandPtr,
-			suffixPtr,
-			handler,
-			async
-		);
+		commandPtr = commandBuilder.build();
 	}
-	std::cout << "Command::createCommand end" << std::endl << std::flush;
 
-	return std::move(cliCommandPtr);
+	return std::move(commandPtr);
 }
 
 
 std::unique_ptr<Command> Command::createTelnetCommand(Session* sessionPtr, const char* buffer, std::size_t bufferSize, std::size_t dataSize, std::size_t prefixSize) {
-	bool                         found         = false;
-	std::size_t                  commandSize   = 0;
-	std::size_t                  suffixSize    = 0;
-    std::shared_ptr<std::string> prefixPtr;
-    std::shared_ptr<std::string> commandPtr;
-    std::shared_ptr<std::string> suffixPtr;
+	bool                          found         = false;
+	std::size_t                   commandSize   = 0;
+	std::size_t                   suffixSize    = 0;
+    std::shared_ptr<std::string>  prefixPtr;
+    std::shared_ptr<std::string>  commandPtr;
+    std::shared_ptr<std::string>  suffixPtr;
     std::function<void(Command*)> handler       = nullptr;
-    std::unique_ptr<Command>     cliCommandPtr;
+    std::unique_ptr<Command>      cliCommandPtr;
 
 	// telnet command must start with 255
 	if (!found && ((unsigned char)buffer[prefixSize]) != 255) {
@@ -197,21 +183,21 @@ std::unique_ptr<Command> Command::createTelnetCommand(Session* sessionPtr, const
 		commandPtr = std::make_shared<std::string>(buffer + prefixSize, commandSize);
 		suffixPtr  = std::make_shared<std::string>(buffer + prefixSize + commandSize, suffixSize);
 
-		std::cout << "prefix: " << std::flush;
-		for (std::size_t j = 0; j < prefixPtr->size(); j++) {
-			std::cout << ((unsigned int)((unsigned char)prefixPtr->at(j))) << " " << std::flush;
-		}
-		std::cout << std::endl << std::flush;
-		std::cout << "command: " << std::flush;
-		for (std::size_t j = 0; j < commandPtr->size(); j++) {
-			std::cout << ((unsigned int)((unsigned char)commandPtr->at(j))) << " " << std::flush;
-		}
-		std::cout << std::endl << std::flush;
-		std::cout << "suffix: " << std::flush;
-		for (std::size_t j = 0; j < suffixPtr->size(); j++) {
-			std::cout << ((unsigned int)((unsigned char)suffixPtr->at(j))) << " " << std::flush;
-		}
-		std::cout << std::endl << std::flush;
+		//std::cout << "prefix: " << std::flush;
+		//for (std::size_t j = 0; j < prefixPtr->size(); j++) {
+		//	std::cout << ((unsigned int)((unsigned char)prefixPtr->at(j))) << " " << std::flush;
+		//}
+		//std::cout << std::endl << std::flush;
+		//std::cout << "command: " << std::flush;
+		//for (std::size_t j = 0; j < commandPtr->size(); j++) {
+		//	std::cout << ((unsigned int)((unsigned char)commandPtr->at(j))) << " " << std::flush;
+		//}
+		//std::cout << std::endl << std::flush;
+		//std::cout << "suffix: " << std::flush;
+		//for (std::size_t j = 0; j < suffixPtr->size(); j++) {
+		//	std::cout << ((unsigned int)((unsigned char)suffixPtr->at(j))) << " " << std::flush;
+		//}
+		//std::cout << std::endl << std::flush;
 
 		// creating CLI command object
 		cliCommandPtr = std::make_unique<Command>(
@@ -329,17 +315,77 @@ void Command::handleClose() {
 
 
 void Command::handleInvalid() {
-	std::cout << "Command::handleInvalid begin" << std::endl << std::flush;
-	std::cout << "Command::handleInvalid end" << std::endl << std::flush;
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleInvalid begin (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleInvalid end (id=" << this << ")";
 }
 
 
 void Command::handleNone() {
-	std::cout << "Command::handleNone begin" << std::endl << std::flush;
-	std::cout << "Command::handleNone end" << std::endl << std::flush;
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleNone begin (id=" << this << ")";
+	LOG(DEBUG) << LABELS{"cli"} << "Command::handleNone end (id=" << this << ")";
 }
 
 
 void Command::setCancelHandler(std::function<void()> cancelHandler) {
 	this->cancelHandler = cancelHandler;
+}
+
+
+Command::Builder::Builder(Session* s)
+	: sessionPtr(s)
+	, handler(nullptr)
+	, async(false)
+	, prefix("")
+	, command("")
+	, suffix("") {}
+
+
+std::unique_ptr<Command> Command::Builder::build()
+{
+	// creating CLI command object
+	return std::make_unique<Command>(
+		sessionPtr,
+		std::make_shared<std::string>(prefix),
+		std::make_shared<std::string>(command),
+		std::make_shared<std::string>(suffix),
+		handler,
+		async
+	);
+	//auto commandPtr = std::unique_ptr<Command>();
+	//return std::move(commandPtr);
+}
+
+
+Command::Builder& Command::Builder::setAsync(bool a)
+{
+	async = a;
+	return *this;
+}
+
+
+Command::Builder& Command::Builder::setCommand(std::string c)
+{
+	command = c;
+	return *this;
+}
+
+
+Command::Builder& Command::Builder::setHandler(std::function<void(Command*)> h)
+{
+	handler = h;
+	return *this;
+}
+
+
+Command::Builder& Command::Builder::setPrefix(std::string p)
+{
+	prefix = p;
+	return *this;
+}
+
+
+Command::Builder& Command::Builder::setSuffix(std::string s)
+{
+	suffix = s;
+	return *this;
 }

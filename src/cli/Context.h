@@ -6,10 +6,10 @@
 #include <functional>
 #include <g3log/logworker.hpp>
 #include <string>
-#include <utility>
 
 
 // forward declaration
+class Actions;
 class Command;
 
 
@@ -18,6 +18,7 @@ class Context
 	public:
 		explicit                  Context(Command*, std::vector<std::string>);
 		virtual                  ~Context();
+		Actions&                  getActions();
 		g3::LogWorker&            getLogger();
 		std::ostream&             getOutput();
 		std::vector<std::string>& getParameters();

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cli/Messages.h>
 #include <sstream>
 
@@ -6,6 +7,28 @@
 
 namespace cli
 {
+	std::string leftTrim(const std::string& s)
+	{
+		auto r = std::find_if_not(s.begin(), s.end(), [](int c)
+		{
+			return std::isspace(c);
+		});
+
+		return std::string(r, s.end());
+	}
+
+
+	std::string rightTrim(const std::string& s)
+	{
+		auto r = std::find_if_not(s.rbegin(), s.rend(), [](int c)
+		{
+			return std::isspace(c);
+		}).base();
+
+		return std::string(s.begin(), r);
+	}
+
+
 	std::vector<std::string> splitIntoWords(const std::string& stringValue, const char separator)
 	{
 		std::stringstream stringStream(stringValue);
@@ -14,8 +37,7 @@ namespace cli
 
 		while(std::getline(stringStream, word, separator))
 		{
-			// TODO: trimming
-			// word.trim();
+			word = trim(word);
 			if (word.size() > 0)
 			{
 				words.push_back(word);
@@ -45,5 +67,11 @@ namespace cli
 		}
 
 		return words;
+	}
+
+
+	std::string trim(const std::string& s)
+	{
+		return leftTrim(rightTrim(s));
 	}
 }

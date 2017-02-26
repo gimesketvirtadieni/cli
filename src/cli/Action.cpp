@@ -11,25 +11,28 @@ Action::Action(std::string c, std::string n, std::function<void(Context&)> h)
 	, actionHandler(h) {}
 
 
+Action::~Action() {}
+
+
 void Action::operator()(Context& context)
 {
 	main(context);
 }
 
 
-std::string Action::getCategoryName()
+const std::string& Action::getCategoryName()
 {
 	return categoryName;
 }
 
 
-std::function<void(Context&)> Action::getHandler()
+const std::function<void(Context&)>& Action::getHandler()
 {
 	return actionHandler;
 }
 
 
-std::string Action::getName()
+const std::string& Action::getName()
 {
 	return actionName;
 }

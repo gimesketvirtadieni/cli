@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <cli/LogShowAction.h>
+#include <cli/ActionLogShow.h>
 #include <cli/Messages.h>
 #include <log/log.h>
 #include <log/SocketSink.h>
@@ -7,11 +7,11 @@
 //#include <iostream>
 
 
-LogShowAction::LogShowAction()
+ActionLogShow::ActionLogShow()
 	: Action("log", "show") {}
 
 
-bool LogShowAction::containsAny(LABELS& a, std::vector<std::string>& b)
+bool ActionLogShow::containsAny(LABELS& a, std::vector<std::string>& b)
 {
 	bool found = false;
 
@@ -28,7 +28,7 @@ bool LogShowAction::containsAny(LABELS& a, std::vector<std::string>& b)
 }
 
 
-void LogShowAction::main(Context& context)
+void ActionLogShow::main(Context& context)
 {
 	auto stopping = false;
 	auto labels   = std::vector<std::string>{};
