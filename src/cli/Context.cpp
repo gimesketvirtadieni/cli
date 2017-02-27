@@ -40,7 +40,7 @@ std::ostream& Context::getOutput()
 }
 
 
-std::vector<std::string>& Context::getParameters()
+const std::vector<std::string>& Context::getParameters()
 {
 	return parameters;
 }

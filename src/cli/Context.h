@@ -16,14 +16,14 @@ class Command;
 class Context
 {
 	public:
-		explicit                  Context(Command*, std::vector<std::string>);
-		virtual                  ~Context();
-		Actions&                  getActions();
-		g3::LogWorker&            getLogger();
-		std::ostream&             getOutput();
-		std::vector<std::string>& getParameters();
-		Socket&                   getSocket();
-		void                      setCancelHandler(std::function<void()>);
+		explicit                        Context(Command*, std::vector<std::string>);
+		virtual                        ~Context();
+		Actions&                        getActions();
+		g3::LogWorker&                  getLogger();
+		std::ostream&                   getOutput();
+		const std::vector<std::string>& getParameters();
+		Socket&                         getSocket();
+		void                            setCancelHandler(std::function<void()>);
 
 	private:
 		Command*                 commandPtr;

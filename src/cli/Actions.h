@@ -16,7 +16,8 @@ using ActionsMap    = std::map<std::string, std::function<void(Context&)>>;
 using CategoriesMap = std::map<std::string, ActionsMap>;
 
 
-class Actions {
+class Actions
+{
 	friend ActionCLIList;
 
 	public:
@@ -26,7 +27,7 @@ class Actions {
 		void                          addDefaultLogActions();
 		std::function<void(Context&)> findAction(const std::vector<std::string>&);
 		template<class T>
-		void addAction(T action)
+		inline void addAction(T action)
 		{
 			// compile-time sanity check
 			static_assert(std::is_base_of<Action, T>::value, "Provided action is not not derived from Action class");

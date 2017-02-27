@@ -11,13 +11,13 @@
 
 
 // forward declaration
-class Socket;
 class Server;
+class Socket;
 
 
 class Session : public SessionBase<Session, Socket> {
 	public:
-		         Session(Server*);
+		explicit Session(Server*);
 		virtual ~Session();
 
 	protected:

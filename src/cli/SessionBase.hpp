@@ -23,8 +23,8 @@ class SessionBase {
 		, promptWasSent(false) {}
 
 
-		inline void cancel() {
-
+		inline void cancel()
+		{
 			// required to display prompt properly
 			promptWasSent = false;
 
@@ -44,17 +44,20 @@ class SessionBase {
 		}
 
 
-		conwrap::ProcessorQueue<SessionType>* getProcessor() {
+		conwrap::ProcessorQueue<SessionType>* getProcessor()
+		{
 	    	return processorPtr;
 	    }
 
 
-		inline Server* getServer() {
+		inline Server* getServer()
+		{
 			return serverPtr;
 		}
 
 
-		inline SocketType* getSocket() {
+		inline SocketType* getSocket()
+		{
 			return socketPtr.get();
 		}
 
@@ -129,8 +132,8 @@ class SessionBase {
 		}
 
 
-		void sendPrompt(bool sendEOL) {
-
+		void sendPrompt(bool sendEOL)
+		{
 			if (!promptWasSent) {
 				if (sendEOL) {
 					getSocket()->send(cli::Messages::endOfLine);
